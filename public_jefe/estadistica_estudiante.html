@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Estadistícas por Estudiante</title>
+    <link rel="shorcut icon" href="img/logo-carrera-ingenieria-en-sistemas.png">
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="plugins/Magicsuggest-magicsuggest-cf74869/magicsuggest-min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/bootstrap3.min.css">
+    <link rel="stylesheet" href="plugins/datatables/datatables.min.css">
+
+    <script src="plugins/pace/pace.js"></script>
+    <link href="plugins/pace/themes/pace-theme-barber-shop.css" rel="stylesheet" />
+
+
+    <link rel="stylesheet" href="css/jquery-ui.css">
+</head>
+<body style="background-color: #ffffe6">
+
+    <nav class="navbar navbar-inverse" id = "nav" style="background-color: #003366;">
+          <div class="container-fluid">
+            <div class="navbar-header">
+              <a class="navbar-brand" href="inicio.html">AutoScraping</a>
+            </div>
+            <ul class="nav navbar-nav">
+              <li><a href="estadistica.html">Atrás</a></li>
+              <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Categorías<span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    <li><a href="estadistica.html">Estadística</a></li>
+                    <li><a href="carga.html">Carga Académica</a></li>
+                    <li><a href="extraccion_scraping.html">Extracción de Datos</a></li>
+                </ul>
+              </li>
+              <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Estadística<span class="caret"></span></a>
+                <ul class="dropdown-menu">
+                    <li><a href="estadistica_categoria.html">Estadística por Categoría</a></li>
+                    <li><a href="estadistica_estudiante.html">Estadística por Estudiante</a></li>
+                </ul>
+              </li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><button type="button" class="btn btn-link navbar-btn" data-toggle="modal" data-target="#myModal" style="text-decoration: none;">Acerca de</button></li>
+                <li>
+              <li><a href="/logout"><span class="glyphicon glyphicon-log-in"></span> Cerrar Sesión</a></li>
+            </ul>
+          </div>
+    </nav>
+<div class="container" id="contenedor-principal" style="background-color: white; border-radius: 25px;">
+
+   <!-- MODAL -->
+      <div class="modal fade" id="myModal" role="dialog">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Acerca de AutoScraping</h4>
+              </div>
+              <div class="modal-body">
+                <p><strong>AutoScraping</strong></p>
+                <p>Fue creado por estudiantes de Ingeniería en Sistemas de la UNAH-CU el tercer período académico de 2018, con el proposito de facilitar estádicas a traves de la automatización de procesos. Asimismo, brindar una herramienta para la toma de deciciones del departamento de <strong>Ingeniería en Sistemas</strong> del Centro Universitario.</p>
+                
+                <hr>
+                <strong>Integrantes:</strong>
+                <br>
+                <table class="table">
+                  <thead>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                  </thead>
+                  <tr>
+                    <td>José Ángel Zúniga Turcios</td>
+                    <td>jazt9513@gmail.com</td>
+                  </tr>
+                  <tr>
+                    <td>Alma Violeta Vásquez</td>
+                    <td>almavioleta96@gmail.com</td>
+                  </tr>
+                  <tr>
+                    <td>Josué Rigoberto Murillo Ramos</td>
+                    <td>josuerigoberto42@gmail.com</td>
+                  </tr>
+                  <tr>
+                    <td>John Keny Leverón Alvarenga</td>
+                    <td>jkleveronjr@gmail.com</td>
+                  </tr>
+                  <tr>
+                    <td>Oscar Gabriel Alonzo Moreno</td>
+                    <td>firstdrw@gmail.com</td>
+                  </tr>
+                  <tr>
+                    <td>Gabriela Yokasta Sanabria García</td>
+                    <td>yokastag21@gmail.com</td>
+                  </tr>
+                </table>
+                <hr>
+                <p class="text-center">Tegucigalpa M.D.C - Diciembre de 2018</p>
+               
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-success" data-dismiss="modal">Cerrar</button>
+              </div>
+          </div>
+      </div>
+      </div>
+      <!-- MODAL -->
+    
+    <div class="row">
+        <div class="col-md-12">
+            <h1 style="text-align: center;">Estadísticas por Estudiante</h1>
+            
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <hr>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <form class="form-inline">
+                <label for="cuenta">Ingrese el Número de Cuenta que desea buscar:</label>
+                <br>
+                <input class="form-control" type="text" placeholder="Número de Cuenta" id="cuenta" maxlength="20" autocomplete="off" autofocus="true">
+                <input type="button" class="btn btn-primary" id="buscar" value="Buscar">
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <hr>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <table id="info" class="table">
+                <thead>
+                </thead>
+                <tbody>
+                   <tr>
+                     <th>Nombre</th>
+                      <td id="estudiante"></td>
+                  </tr>
+                  <tr>
+                    <th>Índice Global</td>
+                      <td id="indice"></td>
+                  </tr>
+                  <tr>
+                    <th>Centro de Estudio</td>
+                      <td id="centro_estudio"></td>
+                  </tr>
+                  <tr>
+                    <th>Carrera</td>
+                      <td id="carrera"></td>
+                  </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <hr>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <h3>Historial Académico:</h3>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <table id="historial" class="table">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Asignatura</th>
+                        <th>UV</th>
+                        <th>Sección</th>
+                        <th>Año</th>
+                        <th>Periodo</th>
+                        <th>Calificación</th>
+                        <th>Observación</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <hr>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div id="grafico">
+                <h3>Seguimiento de Calificaciones:</h3>
+                <div class="wrap-contact2" style="padding: 0px; height:auto; width:auto" id="canvas-container">
+                    <canvas id="myChart" max-width="700" max-height="700" style="background:white;"></canvas>
+                </div><br>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="js/jquery.min.js"></script>
+<script src="js/bootstrap3.min.js"></script>
+<script src="js/Chart.bundle.min.js"></script>
+<script src="plugins/datatables/datatables.min.js"></script>
+<script src="js/controlador.estadistica_estudiante.js"></script>
+
+</body>
+
+</html>

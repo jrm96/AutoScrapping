@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Estadísticas por Categoría</title>
+	<link rel="shorcut icon" href="img/logo-carrera-ingenieria-en-sistemas.png">
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link href="plugins/Magicsuggest-magicsuggest-cf74869/magicsuggest-min.css" rel="stylesheet">
+	<link rel="stylesheet" href="css/bootstrap3.min.css">
+	<link rel="stylesheet" href="plugins/datatables/datatables.min.css">
+
+	<script src="plugins/pace/pace.js"></script>
+	<link href="plugins/pace/themes/pace-theme-barber-shop.css" rel="stylesheet" />
+
+
+	<link rel="stylesheet" href="css/jquery-ui.css">
+	<link rel="stylesheet" href="css/categorias.css">
+</head>
+
+<body style="background-color: #ffffe6">
+
+	<nav class="navbar navbar-inverse" id="nav" style="background-color: #003366;">
+		<div class="container-fluid">
+			<div class="navbar-header">
+				<a class="navbar-brand" href="inicio.html">AutoScraping</a>
+			</div>
+			<ul class="nav navbar-nav">
+				
+				<li class="dropdown">
+					<a class="dropdown-toggle" data-toggle="dropdown" href="#">Estadística
+						<span class="caret"></span>
+					</a>
+					<ul class="dropdown-menu">
+						<li>
+							<a href="estadistica_categoria.html">Estadística por Categoría</a>
+						</li>
+						<li>
+							<a href="estadistica_estudiante.html">Estadística por Estudiante</a>
+						</li>
+					</ul>
+				</li>
+			</ul>
+			<ul class="nav navbar-nav navbar-right">
+				<li>
+					<button type="button" class="btn btn-link navbar-btn" data-toggle="modal" data-target="#myModal" style="text-decoration: none;">Acerca de</button>
+				</li>
+				<li>
+					<a href="/logout">
+						<span class="glyphicon glyphicon-log-in"></span> Cerrar Sesión</a>
+				</li>
+			</ul>
+		</div>
+	</nav>
+
+
+	<div class="container" id="contenedor-principal" style="background-color: white; border-radius: 25px;">
+
+		<!-- MODAL -->
+			<div class="modal fade" id="myModal" role="dialog">
+			    <div class="modal-dialog modal-lg">
+			      <div class="modal-content">
+			        <div class="modal-header">
+			          <button type="button" class="close" data-dismiss="modal">&times;</button>
+			          <h4 class="modal-title">Acerca de AutoScraping</h4>
+			        </div>
+			        <div class="modal-body">
+			          <p><strong>AutoScraping</strong></p>
+			          <p>Fue creado por estudiantes de Ingeniería en Sistemas de la UNAH-CU el tercer período académico de 2018, con el proposito de facilitar estádicas a traves de la automatización de procesos. Asimismo, brindar una herramienta para la toma de deciciones del departamento de <strong>Ingeniería en Sistemas</strong> del Centro Universitario.</p>
+			          
+			          <hr>
+			          <strong>Integrantes:</strong>
+			          <br>
+			          <table class="table">
+			          	<thead>
+			          		<th>Nombre</th>
+			          		<th>Correo</th>
+			          	</thead>
+			          	<tr>
+			          		<td>José Ángel Zúniga Turcios</td>
+			          		<td>jazt9513@gmail.com</td>
+			          	</tr>
+			          	<tr>
+			          		<td>Alma Violeta Vásquez</td>
+			          		<td>almavioleta96@gmail.com</td>
+			          	</tr>
+			          	<tr>
+			          		<td>Josué Rigoberto Murillo Ramos</td>
+			          		<td>josuerigoberto42@gmail.com</td>
+			          	</tr>
+			          	<tr>
+			          		<td>John Keny Leverón Alvarenga</td>
+			          		<td>jkleveronjr@gmail.com</td>
+			          	</tr>
+			          	<tr>
+			          		<td>Oscar Gabriel Alonzo Moreno</td>
+			          		<td>firstdrw@gmail.com</td>
+			          	</tr>
+			          	<tr>
+			          		<td>Gabriela Yokasta Sanabria García</td>
+			          		<td>yokastag21@gmail.com</td>
+			          	</tr>
+			          </table>
+			          <hr>
+			          <p class="text-center">Tegucigalpa M.D.C - Diciembre de 2018</p>
+			         
+			        </div>
+			        <div class="modal-footer">
+			          <button type="button" class="btn btn-success" data-dismiss="modal">Cerrar</button>
+			        </div>
+			    </div>
+			</div>
+			</div>
+			<!-- MODAL -->
+
+		<div class="row">
+			<div class="col-md-12">
+				<h1 style="text-align: center;">Estadísticas por Categoría</h1>
+				<h4 style="text-align: center;">(APR, RPB, NSP, ABN)</h4>
+			</div>
+		</div>
+		
+		<hr>
+		<div class="container ">
+			<div class="col-md-12">
+				<!-- <form> -->
+				<div class="form-group">
+					<div class="col-md-12 text-center form-group">
+						<label for="amount">Seleccione rango de períodos: </label>
+						<input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold; width: 20vw">
+					</div>
+				</div>
+				<div class="form-group row">
+					<div class="col-md-12 col-md-offset-0">
+						<div style="margin: 10px; " id="slider-range"></div>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label>Docente(s): </label>
+					<input id="docentes" class="form-control" name="docentes[]" placeholder="Todos">
+				</div>
+				<div class="form-group">
+					<label>Área(s): </label>
+					<input id="areas" class="form-control" name="areas[]" placeholder="Todas">
+				</div>
+				<div class="form-group">
+					<label>Asignatura(s): </label>
+					<input id="asignaturas" class="form-control" name="asignaturas[]" placeholder="Todas">
+				</div>
+				<div class="form-group">
+					<label>Observaciones: </label>
+					<input id="observaciones" class="form-control" name="observaciones[]" placeholder="Todas">
+				</div>
+				<div class="form-group">
+					<label>Número de cuenta: </label>
+					<input class="form-control" id="cuenta" type="text" placeholder="Ingrese número cuenta" autocomplete="off" maxlength="20">
+				</div>
+				<div class="form-group pull-right">
+					Ocultar cuarto periodo: <label class="switch">
+							<input id="check_periodo4" type="checkbox" checked>
+							<span class="slider round"></span>
+					</label>
+					<input type="button" class="btn btn-lg btn-primary" id="generar" value="Generar">
+				</div>
+				<div class="form-group">
+				</div>
+				<!-- </form> -->
+			</div>
+		</div>
+		<div id="grafico" class="row">
+			<h3 class="col-12" style="text-align: center;">GRAFICO DE PASTEL</h3>
+			<div class="col-md-7">
+
+				<div class="wrap-contact2 col-xl-7 col-lg-7 col-12" style="padding: 10px; height:auto; min-width:100%; background-color: white;"
+				 id="canvas-container">
+					<canvas id="myChart" max-width="350" max-height="400" style="background:white;"></canvas>
+				</div>
+			</div>
+			<div class="col-md-5 ">
+				<div class="wrap-contact2 col-xl-5 col-lg-5 col-12" style="padding: 10px; height:auto; width:100%">
+
+					<table class="table table-hover" id="tabla-obs">
+						<thead>
+							<tr>
+								<th>OBS</th>
+								<th>Número</th>
+								<th>Porcentaje</th>
+							</tr>
+						</thead>
+						<tbody>
+
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12">
+				<hr>
+			</div>
+		</div>
+		<div id="grafico" class="row">
+			<div class="col-md-12">
+				<h3 class="col-12" style="text-align: center;">GRAFICO DE BARRAS</h3>
+				<div class="wrap-contact2 col-xl-12 col-lg-12 col-12" style="padding: 10px; height:auto; min-width:100%; background-color: white;"
+				 id="barras-container">
+					<canvas id="chartBarras" max-width="350" max-height="400" style="background:white;"></canvas>
+				</div>
+			</div>
+		</div>
+		<br>
+		<div id="detalle" class="row" style="display: none;">
+			<div class="col-md-12">
+				<h3 class="col-12" style="text-align: center;" id="titulo"></h3>
+				<div class="wrap-contact2 col-xl-12 col-lg-12 col-12" style="padding: 10px; height:auto; min-width:100%; background-color: white;"
+				 id="barras-container">
+					<table class="table table-hover" id="tabla-detalles" style="width: 100%">
+						<thead>
+							<tr>
+								<th>COD</th>
+								<th>Asignatura</th>
+								<th>Seccion</th>
+								<th>Docente</th>
+								<th># Alumnos</th>
+							</tr>
+						</thead>
+						<tbody>
+
+						</tbody>
+						<tfoot>
+							<tr>
+								<th colspan="4" style="text-align:right">Total: </th>
+								<th></th>
+							</tr>
+						</tfoot>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script src="js/jquery.min.js"></script>
+	<script src="js/Chart.bundle.min.js"></script>
+	<script src="js/bootstrap3.min.js"></script>
+	<script src="js/jquery-ui.js"></script>
+	<script src="plugins/datatables/datatables.min.js"></script>
+	<script src="plugins/Magicsuggest-magicsuggest-cf74869/magicsuggest-min.js"></script>
+	<script src="js/controlador.estadistica_categoria.js"></script>
+
+</body>
+
+</html>

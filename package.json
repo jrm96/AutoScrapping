@@ -1,0 +1,21 @@
+{
+  "name": "pruba2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "connect-busboy": "0.0.2",
+    "express": "^4.16.4",
+    "express-session": "^1.15.6",
+    "mysql": "^2.16.0",
+    "selenium-query": "^0.51.56",
+    "selenium-webdriver": "^4.0.0-alpha.1",
+    "xlsx": "^0.14.1"
+  }
+}
