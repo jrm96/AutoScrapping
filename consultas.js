@@ -5,8 +5,8 @@ module.exports = {
 ///////////////////////////////////////////////////////////////////////////////
 
     login : function(){
-        return `SELECT cod_usuario_pk, txt_nombre, cod_tipo_usuario_pk FROM tbl_usuario WHERE 
-        (txt_nombre=? or num_empleado=?) and txt_contrasenia=sha(?);`;
+        return `SELECT cod_usuario_pk, txt_nombre, cod_tipo_usuario_fk FROM tbl_usuario WHERE 
+        txt_nombre = ? and txt_contrasenia=sha1(?);`;
     },
 
 

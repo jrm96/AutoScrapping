@@ -26,7 +26,7 @@ CONTENIDO
 var mysql = require("mysql");
 var credenciales = {
     user: "root",
-    password: "",
+    password: "rootroot",
     port: "3306",
     host: "localhost",
     database: "bd_autoscraping"
@@ -126,7 +126,7 @@ var estadoProgreso = "detenido";
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///PARA AGREGAR SEGURIDAD A UNA RUTA ESPECÍFICA:
-function verificarAutenticacion(peticion, respuesta, next) {
+function verificarAutenticacion(peticion, respuesta, next) { 
     if (peticion.session.nombre) {
         return next();
     } else {
@@ -144,7 +144,7 @@ function verificarAutenticacion(peticion, respuesta, next) {
             <form class="form-control">
                 <div class="form-control text-center">
                     <h1>Error de acceso!!</h1>
-                    <h1>No tiene autoridad para acceder a esta página.</h1>
+                    <h1>No tiene autorización para acceder a esta página.</h1>
                 </div><br>
                 <div class="form-control text-center">
                     <a href="/index.html" class="btn btn-dark">Volver</a>
@@ -229,17 +229,26 @@ function verificarAccesoPeticionJefe(peticion, respuesta, next) {
 //PETICIÓN PARA INICIAR SESIÓN EN EL SISTEMA
 app.post("/login", function (peticion, respuesta) {
     conexion.query(consultas.login(),
-        [peticion.body.nombre, peticion.body.numero, peticion.body.contrasena],
+        [peticion.body.nombre, peticion.body.contrasena],
         function (err, data, fields) {
-            if (err)
-                console.log(err)
-            if (data) {
-                peticion.session.nombre = data[0].txt_nombre;
-                peticion.session.codigoTipoUsuario = data[0].cod_tipo_usuario_pk;
-                data[0].estatus = 0;
-                respuesta.send(data[0]);
-            } else {
-                respuesta.send({ estatus: 1, mensaje: "Login fallido" });
+            try{
+                peticion.session.nombre = null;
+                peticion.session.codigoTipoUsuario = null;
+                if (err){
+                    respuesta.send({ estatus: 1, mensaje: "Error desconocido al inciar sesión" });
+                    console.log(err);
+                    
+                } else if (data) {
+                    peticion.session.nombre = data[0].txt_nombre;
+                    peticion.session.codigoTipoUsuario = data[0].cod_tipo_usuario_fk;
+                    data[0].estatus = 0;
+                    respuesta.send(data[0]);
+                } else {
+                    respuesta.send({ estatus: 1, mensaje: "Las credenciales son incorrectas" });
+                }
+            }catch(e){
+                respuesta.send({ estatus: 1, mensaje: "Las credenciales son incorrectas" });
+                console.log(e);
             }
         }
     );
@@ -942,7 +951,7 @@ async function login() {
 
         //DA CLICK EN EL BOTÓN DE INICIO
         await driver.findElement(By.id("MainContent_Button1")).click();
-        await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[3]/div[@id='MainContent_Menu1']/ul[@class='level1 static']/li[@class='static'][2]/a[@class='level1 static']")).click();
+        await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[4]/div[@id='MainContent_Menu1']/ul[@class='level1 static']/li[@class='static'][2]/a[@class='level1 static']")).click();
         return true;
     } catch (e) {
         cerrarNavegador();
