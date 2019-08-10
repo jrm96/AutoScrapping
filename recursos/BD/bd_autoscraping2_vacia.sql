@@ -12,11 +12,11 @@
 /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
 
 
--- Dumping database structure for bd_autoscraping
-CREATE DATABASE IF NOT EXISTS `bd_autoscraping` /*!40100 DEFAULT CHARACTER SET utf8 COLLATE utf8_spanish_ci */;
-USE `bd_autoscraping`;
+-- Dumping database structure for bd_autoscraping_nueva
+CREATE DATABASE IF NOT EXISTS `bd_autoscraping_nueva` /*!40100 DEFAULT CHARACTER SET utf8 COLLATE utf8_spanish_ci */;
+USE `bd_autoscraping_nueva`;
 
--- Dumping structure for function bd_autoscraping.buscar_asignatura
+-- Dumping structure for function bd_autoscraping_nueva.buscar_asignatura
 DELIMITER //
 CREATE DEFINER=`root`@`localhost` FUNCTION `buscar_asignatura`(`_cod_asignatura` VARCHAR(8), `_txt_nombre_asignatura` VARCHAR(100)) RETURNS int(11)
 begin 
@@ -39,7 +39,7 @@ return resultado;
 end//
 DELIMITER ;
 
--- Dumping structure for function bd_autoscraping.buscar_carga
+-- Dumping structure for function bd_autoscraping_nueva.buscar_carga
 DELIMITER //
 CREATE DEFINER=`root`@`localhost` FUNCTION `buscar_carga`(`_num_seccion` INT, `_num_periodo` INT, `_num_anio` INT, `_cod_asignatura` VARCHAR(8), `_txt_HI` VARCHAR(6), `_txt_HF` VARCHAR(6), `_txt_dias` VARCHAR(15), `_txt_aula` VARCHAR(200), `_txt_edificio` VARCHAR(10), `_num_docente` VARCHAR(30)) RETURNS int(11)
 begin 
@@ -134,7 +134,7 @@ return resultado;
 end//
 DELIMITER ;
 
--- Dumping structure for function bd_autoscraping.buscar_docente
+-- Dumping structure for function bd_autoscraping_nueva.buscar_docente
 DELIMITER //
 CREATE DEFINER=`root`@`localhost` FUNCTION `buscar_docente`(`_num_docente` VARCHAR(30), `_nombre_docente` VARCHAR(60)) RETURNS int(11)
 begin 
@@ -157,7 +157,7 @@ return resultado;
 end//
 DELIMITER ;
 
--- Dumping structure for function bd_autoscraping.buscar_estudiante
+-- Dumping structure for function bd_autoscraping_nueva.buscar_estudiante
 DELIMITER //
 CREATE DEFINER=`root`@`localhost` FUNCTION `buscar_estudiante`(
 	`_num_cuenta` VARCHAR(20),
@@ -185,7 +185,7 @@ return resultado;
 end//
 DELIMITER ;
 
--- Dumping structure for function bd_autoscraping.buscar_historial
+-- Dumping structure for function bd_autoscraping_nueva.buscar_historial
 DELIMITER //
 CREATE DEFINER=`root`@`localhost` FUNCTION `buscar_historial`(`_num_cuenta` VARCHAR(20), `_num_seccion` INT, `_num_periodo` INT, `_num_anio` INT, `_cod_asignatura` VARCHAR(8), `_num_calificacion` INT, `_num_uv` INT, `_txt_obs` VARCHAR(20)) RETURNS int(11)
 begin 
@@ -228,7 +228,7 @@ return resultado;
 end//
 DELIMITER ;
 
--- Dumping structure for function bd_autoscraping.buscar_periodo
+-- Dumping structure for function bd_autoscraping_nueva.buscar_periodo
 DELIMITER //
 CREATE DEFINER=`root`@`localhost` FUNCTION `buscar_periodo`(`_num_periodo` INT, `_num_anio` INT) RETURNS int(11)
 begin 
@@ -251,7 +251,7 @@ return resultado;
 end//
 DELIMITER ;
 
--- Dumping structure for function bd_autoscraping.buscar_seccion
+-- Dumping structure for function bd_autoscraping_nueva.buscar_seccion
 DELIMITER //
 CREATE DEFINER=`root`@`localhost` FUNCTION `buscar_seccion`(`_num_seccion` INT, `_num_periodo` INT, `_num_anio` INT, `_cod_asignatura` VARCHAR(8)) RETURNS int(11)
 begin 
@@ -281,7 +281,7 @@ else
         insert into tbl_seccion (num_periodo_pk, 		num_anio_pk, cod_asignatura_ck) values (_num_periodo, _num_anio, _cod_asignatura);
         SELECT (SELECT `AUTO_INCREMENT`
 FROM  INFORMATION_SCHEMA.TABLES
-WHERE TABLE_SCHEMA = 'bd_autoscraping'
+WHERE TABLE_SCHEMA = 'bd_autoscraping_nueva'
 AND   TABLE_NAME   = 'tbl_seccion')-1 INTO resultado;
 	else 
             insert into tbl_seccion (num_seccion_pk, num_periodo_pk, 		num_anio_pk, cod_asignatura_ck) values (_num_seccion, _num_periodo, _num_anio, _cod_asignatura);
@@ -293,7 +293,7 @@ return resultado;
 end//
 DELIMITER ;
 
--- Dumping structure for procedure bd_autoscraping.insertar_carga
+-- Dumping structure for procedure bd_autoscraping_nueva.insertar_carga
 DELIMITER //
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insertar_carga`(IN `_cod_asignatura` VARCHAR(8), IN `_txt_nombre_asignatura` VARCHAR(200), IN `_num_seccion` INT, IN `_num_periodo` INT, IN `_num_anio` INT, IN `_txt_HI` VARCHAR(6), IN `_txt_HF` VARCHAR(6), IN `_txt_dias` VARCHAR(15), IN `_txt_aula` VARCHAR(200), IN `_txt_edificio` VARCHAR(10), IN `_num_docente` VARCHAR(30), IN `_txt_nombre_docente` VARCHAR(60))
 begin 
@@ -318,7 +318,7 @@ _txt_HI, _txt_HF, _txt_dias, _txt_aula, _txt_edificio, _num_docente);
 end//
 DELIMITER ;
 
--- Dumping structure for procedure bd_autoscraping.insertar_historial
+-- Dumping structure for procedure bd_autoscraping_nueva.insertar_historial
 DELIMITER //
 CREATE DEFINER=`root`@`localhost` PROCEDURE `insertar_historial`(
 	IN `_num_cuenta` VARCHAR(20),
@@ -341,7 +341,7 @@ begin
 	declare respuesta_periodo tinyint; 
 	declare respuesta_asignatura tinyint; 
 	declare respuesta_estudiante tinyint;
-	declare respuesta_seccion tinyint; 
+	declare respuesta_seccion int; 
 	declare respuesta_historial tinyint;
 	declare cod_carrera int;
 	
@@ -369,18 +369,18 @@ end if;
 end//
 DELIMITER ;
 
--- Dumping structure for table bd_autoscraping.tbl_areas
+-- Dumping structure for table bd_autoscraping_nueva.tbl_areas
 CREATE TABLE IF NOT EXISTS `tbl_areas` (
   `cod_area_pk` int(11) NOT NULL,
   `txt_nombre_area` varchar(100) COLLATE utf8_spanish_ci DEFAULT NULL,
   PRIMARY KEY (`cod_area_pk`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
--- Dumping data for table bd_autoscraping.tbl_areas: ~0 rows (approximately)
+-- Dumping data for table bd_autoscraping_nueva.tbl_areas: ~0 rows (approximately)
 /*!40000 ALTER TABLE `tbl_areas` DISABLE KEYS */;
 /*!40000 ALTER TABLE `tbl_areas` ENABLE KEYS */;
 
--- Dumping structure for table bd_autoscraping.tbl_asignatura
+-- Dumping structure for table bd_autoscraping_nueva.tbl_asignatura
 CREATE TABLE IF NOT EXISTS `tbl_asignatura` (
   `cod_asignatura_pk` varchar(8) COLLATE utf8_spanish_ci NOT NULL,
   `cod_area_pk` int(11) DEFAULT NULL,
@@ -390,11 +390,11 @@ CREATE TABLE IF NOT EXISTS `tbl_asignatura` (
   CONSTRAINT `fk_tbl_asignatura_tbl_areas1` FOREIGN KEY (`cod_area_pk`) REFERENCES `tbl_areas` (`cod_area_pk`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
--- Dumping data for table bd_autoscraping.tbl_asignatura: ~0 rows (approximately)
+-- Dumping data for table bd_autoscraping_nueva.tbl_asignatura: ~0 rows (approximately)
 /*!40000 ALTER TABLE `tbl_asignatura` DISABLE KEYS */;
 /*!40000 ALTER TABLE `tbl_asignatura` ENABLE KEYS */;
 
--- Dumping structure for table bd_autoscraping.tbl_asignatura_predecida
+-- Dumping structure for table bd_autoscraping_nueva.tbl_asignatura_predecida
 CREATE TABLE IF NOT EXISTS `tbl_asignatura_predecida` (
   `num_cuenta_ck` varchar(20) COLLATE utf8_spanish_ci NOT NULL,
   `cod_asignatura_x_plan_estudio_ck` int(11) NOT NULL,
@@ -411,11 +411,11 @@ CREATE TABLE IF NOT EXISTS `tbl_asignatura_predecida` (
   CONSTRAINT `fk_tbl_predicciones_tbl_periodo1` FOREIGN KEY (`num_anio_ck`, `num_periodo_ck`) REFERENCES `tbl_periodo` (`num_anio_pk`, `num_periodo_pk`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
--- Dumping data for table bd_autoscraping.tbl_asignatura_predecida: ~0 rows (approximately)
+-- Dumping data for table bd_autoscraping_nueva.tbl_asignatura_predecida: ~0 rows (approximately)
 /*!40000 ALTER TABLE `tbl_asignatura_predecida` DISABLE KEYS */;
 /*!40000 ALTER TABLE `tbl_asignatura_predecida` ENABLE KEYS */;
 
--- Dumping structure for table bd_autoscraping.tbl_asignatura_x_plan_estudio
+-- Dumping structure for table bd_autoscraping_nueva.tbl_asignatura_x_plan_estudio
 CREATE TABLE IF NOT EXISTS `tbl_asignatura_x_plan_estudio` (
   `cod_asignatura_x_plan_estudio_pk` int(11) NOT NULL AUTO_INCREMENT,
   `cod_plan_estudio_fk` int(11) NOT NULL,
@@ -428,36 +428,36 @@ CREATE TABLE IF NOT EXISTS `tbl_asignatura_x_plan_estudio` (
   CONSTRAINT `fk_tbl_asignatura_x_plan_estudio_tbl_plan_estudio1` FOREIGN KEY (`cod_plan_estudio_fk`) REFERENCES `tbl_plan_estudio` (`cod_plan_estudio_pk`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
--- Dumping data for table bd_autoscraping.tbl_asignatura_x_plan_estudio: ~0 rows (approximately)
+-- Dumping data for table bd_autoscraping_nueva.tbl_asignatura_x_plan_estudio: ~0 rows (approximately)
 /*!40000 ALTER TABLE `tbl_asignatura_x_plan_estudio` DISABLE KEYS */;
 /*!40000 ALTER TABLE `tbl_asignatura_x_plan_estudio` ENABLE KEYS */;
 
--- Dumping structure for table bd_autoscraping.tbl_carrera
+-- Dumping structure for table bd_autoscraping_nueva.tbl_carrera
 CREATE TABLE IF NOT EXISTS `tbl_carrera` (
   `cod_carrera_pk` int(11) NOT NULL AUTO_INCREMENT,
   `txt_nombre_carrera` varchar(100) COLLATE utf8_spanish_ci DEFAULT NULL,
   PRIMARY KEY (`cod_carrera_pk`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
--- Dumping data for table bd_autoscraping.tbl_carrera: ~2 rows (approximately)
+-- Dumping data for table bd_autoscraping_nueva.tbl_carrera: ~2 rows (approximately)
 /*!40000 ALTER TABLE `tbl_carrera` DISABLE KEYS */;
 INSERT INTO `tbl_carrera` (`cod_carrera_pk`, `txt_nombre_carrera`) VALUES
 	(1, 'INGENIERIA EN SISTEMAS'),
 	(3, 'asdf');
 /*!40000 ALTER TABLE `tbl_carrera` ENABLE KEYS */;
 
--- Dumping structure for table bd_autoscraping.tbl_docente
+-- Dumping structure for table bd_autoscraping_nueva.tbl_docente
 CREATE TABLE IF NOT EXISTS `tbl_docente` (
   `num_docente_pk` varchar(30) COLLATE utf8_spanish_ci NOT NULL,
   `txt_nombre` varchar(60) COLLATE utf8_spanish_ci NOT NULL,
   PRIMARY KEY (`num_docente_pk`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
--- Dumping data for table bd_autoscraping.tbl_docente: ~0 rows (approximately)
+-- Dumping data for table bd_autoscraping_nueva.tbl_docente: ~0 rows (approximately)
 /*!40000 ALTER TABLE `tbl_docente` DISABLE KEYS */;
 /*!40000 ALTER TABLE `tbl_docente` ENABLE KEYS */;
 
--- Dumping structure for table bd_autoscraping.tbl_estudiante
+-- Dumping structure for table bd_autoscraping_nueva.tbl_estudiante
 CREATE TABLE IF NOT EXISTS `tbl_estudiante` (
   `num_cuenta_pk` varchar(20) COLLATE utf8_spanish_ci NOT NULL,
   `cod_carrera_fk` int(11) NOT NULL COMMENT 'Antes era txt_carrera varchar 100',
@@ -468,11 +468,11 @@ CREATE TABLE IF NOT EXISTS `tbl_estudiante` (
   CONSTRAINT `fk_tbl_estudiante_tbl_carrera1` FOREIGN KEY (`cod_carrera_fk`) REFERENCES `tbl_carrera` (`cod_carrera_pk`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
--- Dumping data for table bd_autoscraping.tbl_estudiante: ~0 rows (approximately)
+-- Dumping data for table bd_autoscraping_nueva.tbl_estudiante: ~0 rows (approximately)
 /*!40000 ALTER TABLE `tbl_estudiante` DISABLE KEYS */;
 /*!40000 ALTER TABLE `tbl_estudiante` ENABLE KEYS */;
 
--- Dumping structure for table bd_autoscraping.tbl_forma_03
+-- Dumping structure for table bd_autoscraping_nueva.tbl_forma_03
 CREATE TABLE IF NOT EXISTS `tbl_forma_03` (
   `num_cuenta_ck` varchar(20) COLLATE utf8_spanish_ci NOT NULL,
   `num_anio_ck` int(11) NOT NULL,
@@ -488,11 +488,11 @@ CREATE TABLE IF NOT EXISTS `tbl_forma_03` (
   CONSTRAINT `fk_tbl_forma_03_tbl_periodo1` FOREIGN KEY (`num_anio_ck`, `num_periodo_ck`) REFERENCES `tbl_periodo` (`num_anio_pk`, `num_periodo_pk`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
--- Dumping data for table bd_autoscraping.tbl_forma_03: ~0 rows (approximately)
+-- Dumping data for table bd_autoscraping_nueva.tbl_forma_03: ~0 rows (approximately)
 /*!40000 ALTER TABLE `tbl_forma_03` DISABLE KEYS */;
 /*!40000 ALTER TABLE `tbl_forma_03` ENABLE KEYS */;
 
--- Dumping structure for table bd_autoscraping.tbl_historial
+-- Dumping structure for table bd_autoscraping_nueva.tbl_historial
 CREATE TABLE IF NOT EXISTS `tbl_historial` (
   `num_cuenta_ck` varchar(20) COLLATE utf8_spanish_ci NOT NULL,
   `cod_asignatura_ck` varchar(8) COLLATE utf8_spanish_ci NOT NULL,
@@ -509,11 +509,11 @@ CREATE TABLE IF NOT EXISTS `tbl_historial` (
   CONSTRAINT `fk_tbl_historial_tbl_seccion1` FOREIGN KEY (`num_seccion_pk`, `cod_asignatura_ck`, `num_periodo_pk`, `num_anio_pk`) REFERENCES `tbl_seccion` (`num_seccion_pk`, `cod_asignatura_ck`, `num_periodo_pk`, `num_anio_pk`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
--- Dumping data for table bd_autoscraping.tbl_historial: ~0 rows (approximately)
+-- Dumping data for table bd_autoscraping_nueva.tbl_historial: ~0 rows (approximately)
 /*!40000 ALTER TABLE `tbl_historial` DISABLE KEYS */;
 /*!40000 ALTER TABLE `tbl_historial` ENABLE KEYS */;
 
--- Dumping structure for table bd_autoscraping.tbl_indice
+-- Dumping structure for table bd_autoscraping_nueva.tbl_indice
 CREATE TABLE IF NOT EXISTS `tbl_indice` (
   `num_cuenta_pk` varchar(20) COLLATE utf8_spanish_ci NOT NULL,
   `num_periodo_pk` int(11) NOT NULL,
@@ -527,11 +527,11 @@ CREATE TABLE IF NOT EXISTS `tbl_indice` (
   CONSTRAINT `fk_tbl_indice_tbl_periodo1` FOREIGN KEY (`num_anio_pk`, `num_periodo_pk`) REFERENCES `tbl_periodo` (`num_anio_pk`, `num_periodo_pk`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
--- Dumping data for table bd_autoscraping.tbl_indice: ~0 rows (approximately)
+-- Dumping data for table bd_autoscraping_nueva.tbl_indice: ~0 rows (approximately)
 /*!40000 ALTER TABLE `tbl_indice` DISABLE KEYS */;
 /*!40000 ALTER TABLE `tbl_indice` ENABLE KEYS */;
 
--- Dumping structure for table bd_autoscraping.tbl_periodo
+-- Dumping structure for table bd_autoscraping_nueva.tbl_periodo
 CREATE TABLE IF NOT EXISTS `tbl_periodo` (
   `num_periodo_pk` int(11) NOT NULL,
   `num_anio_pk` int(11) NOT NULL,
@@ -540,7 +540,7 @@ CREATE TABLE IF NOT EXISTS `tbl_periodo` (
   PRIMARY KEY (`num_anio_pk`,`num_periodo_pk`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
--- Dumping data for table bd_autoscraping.tbl_periodo: ~3 rows (approximately)
+-- Dumping data for table bd_autoscraping_nueva.tbl_periodo: ~3 rows (approximately)
 /*!40000 ALTER TABLE `tbl_periodo` DISABLE KEYS */;
 INSERT INTO `tbl_periodo` (`num_periodo_pk`, `num_anio_pk`, `fecha_inicio`, `fecha_fin`) VALUES
 	(3, 2006, NULL, NULL),
@@ -548,7 +548,7 @@ INSERT INTO `tbl_periodo` (`num_periodo_pk`, `num_anio_pk`, `fecha_inicio`, `fec
 	(1, 2019, NULL, NULL);
 /*!40000 ALTER TABLE `tbl_periodo` ENABLE KEYS */;
 
--- Dumping structure for table bd_autoscraping.tbl_plan_estudio
+-- Dumping structure for table bd_autoscraping_nueva.tbl_plan_estudio
 CREATE TABLE IF NOT EXISTS `tbl_plan_estudio` (
   `cod_plan_estudio_pk` int(11) NOT NULL AUTO_INCREMENT,
   `cod_carrera_fk` int(11) NOT NULL,
@@ -557,11 +557,11 @@ CREATE TABLE IF NOT EXISTS `tbl_plan_estudio` (
   CONSTRAINT `fk_tbl_plan_estudio_tbl_carrera1` FOREIGN KEY (`cod_carrera_fk`) REFERENCES `tbl_carrera` (`cod_carrera_pk`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
--- Dumping data for table bd_autoscraping.tbl_plan_estudio: ~0 rows (approximately)
+-- Dumping data for table bd_autoscraping_nueva.tbl_plan_estudio: ~0 rows (approximately)
 /*!40000 ALTER TABLE `tbl_plan_estudio` DISABLE KEYS */;
 /*!40000 ALTER TABLE `tbl_plan_estudio` ENABLE KEYS */;
 
--- Dumping structure for table bd_autoscraping.tbl_requisito_x_asignatura
+-- Dumping structure for table bd_autoscraping_nueva.tbl_requisito_x_asignatura
 CREATE TABLE IF NOT EXISTS `tbl_requisito_x_asignatura` (
   `cod_asignatura_x_plan_estudio_ck` int(11) NOT NULL,
   `cod_asignatura_x_plan_estudio_requisito_ck` int(11) NOT NULL,
@@ -571,11 +571,11 @@ CREATE TABLE IF NOT EXISTS `tbl_requisito_x_asignatura` (
   CONSTRAINT `fk_tbl_requisito_x_asignatura_tbl_asignatura_x_plan_estudio2` FOREIGN KEY (`cod_asignatura_x_plan_estudio_requisito_ck`) REFERENCES `tbl_asignatura_x_plan_estudio` (`cod_asignatura_x_plan_estudio_pk`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
--- Dumping data for table bd_autoscraping.tbl_requisito_x_asignatura: ~0 rows (approximately)
+-- Dumping data for table bd_autoscraping_nueva.tbl_requisito_x_asignatura: ~0 rows (approximately)
 /*!40000 ALTER TABLE `tbl_requisito_x_asignatura` DISABLE KEYS */;
 /*!40000 ALTER TABLE `tbl_requisito_x_asignatura` ENABLE KEYS */;
 
--- Dumping structure for table bd_autoscraping.tbl_seccion
+-- Dumping structure for table bd_autoscraping_nueva.tbl_seccion
 CREATE TABLE IF NOT EXISTS `tbl_seccion` (
   `num_seccion_pk` int(11) NOT NULL AUTO_INCREMENT,
   `num_periodo_pk` int(11) NOT NULL,
@@ -596,11 +596,11 @@ CREATE TABLE IF NOT EXISTS `tbl_seccion` (
   CONSTRAINT `fk_tbl_seccion_tbl_periodo1` FOREIGN KEY (`num_anio_pk`, `num_periodo_pk`) REFERENCES `tbl_periodo` (`num_anio_pk`, `num_periodo_pk`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
--- Dumping data for table bd_autoscraping.tbl_seccion: ~0 rows (approximately)
+-- Dumping data for table bd_autoscraping_nueva.tbl_seccion: ~0 rows (approximately)
 /*!40000 ALTER TABLE `tbl_seccion` DISABLE KEYS */;
 /*!40000 ALTER TABLE `tbl_seccion` ENABLE KEYS */;
 
--- Dumping structure for table bd_autoscraping.tbl_tipo_usuario
+-- Dumping structure for table bd_autoscraping_nueva.tbl_tipo_usuario
 CREATE TABLE IF NOT EXISTS `tbl_tipo_usuario` (
   `cod_tipo_usuario_pk` int(11) NOT NULL AUTO_INCREMENT,
   `txt_tipo_usuario` varchar(45) COLLATE utf8_spanish_ci NOT NULL,
@@ -608,14 +608,14 @@ CREATE TABLE IF NOT EXISTS `tbl_tipo_usuario` (
   PRIMARY KEY (`cod_tipo_usuario_pk`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
--- Dumping data for table bd_autoscraping.tbl_tipo_usuario: ~2 rows (approximately)
+-- Dumping data for table bd_autoscraping_nueva.tbl_tipo_usuario: ~2 rows (approximately)
 /*!40000 ALTER TABLE `tbl_tipo_usuario` DISABLE KEYS */;
 INSERT INTO `tbl_tipo_usuario` (`cod_tipo_usuario_pk`, `txt_tipo_usuario`, `cod_interno`) VALUES
 	(1, 'Administrador', 'ADMINISTRADOR'),
 	(2, 'Coordinador', 'COORDINADOR');
 /*!40000 ALTER TABLE `tbl_tipo_usuario` ENABLE KEYS */;
 
--- Dumping structure for table bd_autoscraping.tbl_usuario
+-- Dumping structure for table bd_autoscraping_nueva.tbl_usuario
 CREATE TABLE IF NOT EXISTS `tbl_usuario` (
   `cod_usuario_pk` int(11) NOT NULL AUTO_INCREMENT,
   `cod_tipo_usuario_fk` int(11) NOT NULL,
@@ -627,7 +627,7 @@ CREATE TABLE IF NOT EXISTS `tbl_usuario` (
   CONSTRAINT `fk_tbl_usuario_tbl_tipo_usuario1` FOREIGN KEY (`cod_tipo_usuario_fk`) REFERENCES `tbl_tipo_usuario` (`cod_tipo_usuario_pk`) ON DELETE NO ACTION ON UPDATE NO ACTION
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8 COLLATE=utf8_spanish_ci;
 
--- Dumping data for table bd_autoscraping.tbl_usuario: ~1 rows (approximately)
+-- Dumping data for table bd_autoscraping_nueva.tbl_usuario: ~1 rows (approximately)
 /*!40000 ALTER TABLE `tbl_usuario` DISABLE KEYS */;
 INSERT INTO `tbl_usuario` (`cod_usuario_pk`, `cod_tipo_usuario_fk`, `txt_nombre`, `num_empleado`, `txt_contrasenia`) VALUES
 	(5, 1, 'jefe', '5492', 'bcdcb29ed2aab16d48c11485264df665e906bdd9');

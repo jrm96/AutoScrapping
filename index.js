@@ -26,10 +26,10 @@ CONTENIDO
 var mysql = require("mysql");
 var credenciales = {
     user: "root",
-    password: "rootroot",
+    password: "",
     port: "3306",
     host: "localhost",
-    database: "bd_autoscraping"
+    database: "bd_autoscraping_nueva"
 };
 
 var conexion = mysql.createConnection(credenciales);
@@ -1324,6 +1324,7 @@ async function extraerPaginaHistorial() {
         //RECORRE CADA FILA DE LA TABLA
         for (i = 8; i < res.length; i++) {
             var fila = res[i];
+            fila = fila.replace("   ", "  ");
             var clase = fila.split(" ");
             //CREA UN JSON CON LOS DATOS EXTRAIDOS DE LA FILA
             var reg = {
