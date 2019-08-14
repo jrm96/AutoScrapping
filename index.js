@@ -105,7 +105,7 @@ var publicCoordinador = express.static("public_coordinador");
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 ///////4-VARIABLES GLOBALES ////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////////
-   
+
 var driver;
 var historial = [];
 var estudiante = [];
@@ -126,7 +126,7 @@ var estadoProgreso = "detenido";
 ////////////////////////////////////////////////////////////////////////////////////////////////
 
 ///PARA AGREGAR SEGURIDAD A UNA RUTA ESPECÍFICA:
-function verificarAutenticacion(peticion, respuesta, next) { 
+function verificarAutenticacion(peticion, respuesta, next) {
     if (peticion.session.nombre) {
         return next();
     } else {
@@ -231,13 +231,13 @@ app.post("/login", function (peticion, respuesta) {
     conexion.query(consultas.login(),
         [peticion.body.nombre, peticion.body.contrasena],
         function (err, data, fields) {
-            try{
+            try {
                 peticion.session.nombre = null;
                 peticion.session.codigoTipoUsuario = null;
-                if (err){
+                if (err) {
                     respuesta.send({ estatus: 1, mensaje: "Error desconocido al inciar sesión" });
                     console.log(err);
-                    
+
                 } else if (data) {
                     peticion.session.nombre = data[0].txt_nombre;
                     peticion.session.codigoTipoUsuario = data[0].cod_tipo_usuario_fk;
@@ -246,7 +246,7 @@ app.post("/login", function (peticion, respuesta) {
                 } else {
                     respuesta.send({ estatus: 1, mensaje: "Las credenciales son incorrectas" });
                 }
-            }catch(e){
+            } catch (e) {
                 respuesta.send({ estatus: 1, mensaje: "Las credenciales son incorrectas" });
                 console.log(e);
             }
@@ -888,6 +888,104 @@ app.get("/info-secciones", verificarAccesoPeticion, function (request, response)
         });
 });
 
+app.get("/forma", async function (request, response) {
+    await abrirNavegador();
+    await login();
+
+    response.send({ status: 1 });
+
+    await formaforma();
+
+
+
+
+});
+
+async function formaforma() {
+    try {
+        await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/table[@class='style1']/tbody/tr[2]/td[1]/a[@id='MainContent_LinkButton2']")).click();
+        //INTRODUCE EL NÚMERO DE CUENTA EN EL CAMPO DEL FORMULARIO
+        await driver.findElement(By.id("MainContent_TextBox1")).sendKeys("20141005213");
+        //CLICKEA EL BOTÓN DE ENTRADA AL FORMULARIO
+        await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[@id='MainContent_Panel1']/div[@class='rel']/div[@class='modal-inner-wrapper rounded-corners']/div[@class='content rounded-corners']/div[@class='body']/table[@class='style4']/tbody/tr/td/input[@id='MainContent_Button6']")).click();
+
+        var clases = [];
+
+        clases = await extraerforma();
+        try {
+            await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[@id='MainContent_Panel1']/div[@class='rel']/div[@class='modal-inner-wrapper rounded-corners']/div[@class='content rounded-corners']/div[@class='close']/a[@id='MainContent_LinkButton4']")).click(); 
+        } catch (error) {
+            
+        }
+        await console.log("CLASES:-----------")
+        await console.log(clases);
+        
+
+        return true;
+    } catch (e) {
+        console.log(e);
+        return false;
+    }
+
+
+}
+
+/*async function extraerforma() {
+    await driver.findElements(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[4]/table[2]/tbody/tr[1]/td[@class='style10']/div/table[@id='MainContent_GridView1']/tbody/tr/td"))
+        .then(async function (elements) {
+            var clases = [];
+            await elements.forEach(async function (element, i, array) {
+                await element.getText().then(async function (text) {
+                    await clases.push(text);
+                    if (i === array.length - 1) {
+                        console.log(array.length);
+                        console.log(clases);
+                    }
+                });
+            });
+            await console.log(clases);
+        });
+}*/
+
+async function extraerforma() {
+
+    await driver.findElements(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[4]/table[2]/tbody/tr[1]/td[@class='style10']/div/table[@id='MainContent_GridView1']/tbody/tr"))
+        .then(async function (elements) {
+            if (elements.length == 0) {
+                return false
+            } else {
+                var clases = await []
+                await elements.forEach(async function (element, i, array) {
+                    if (i <= array.length - 2) {
+                        var codAsignatura = periodo = anio = await "";
+                        await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[3]/table/tbody/tr/td[1]/table/tbody/tr[2]/td[@class='style12']/span[@id='MainContent_Label6']"))
+                            .getText().then(function (promiseResult) {
+                                anio = promiseResult
+                            });
+
+                        await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[4]/table[2]/tbody/tr[1]/td[@class='style10']/div/table[@id='MainContent_GridView1']/tbody/tr[" + (i + 2) + "]/td[1]"))
+                            .getText().then(function (promiseResult) {
+                                codAsignatura = promiseResult;
+                            });
+                        //OBTIENE LA INFORMACIÓN DEL LABEL QUE CONTIENE EL NOMBRE DEL ESTUDIANTE
+                        await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[4]/table[2]/tbody/tr[1]/td[@class='style10']/div/table[@id='MainContent_GridView1']/tbody/tr[" + (i + 2) + "]/td[11]"))
+                            .getText().then(function (promiseResult) {
+                                periodo = promiseResult;
+                            });
+                        clases.push({
+                            anio : anio, codAsignatura : codAsignatura, periodo : periodo
+                        })
+                        //await console.log(clases);
+                        await console.log("===================================================");
+                    } else {
+                        console.log(clases);
+                        return clases;
+                    } 
+                });
+                
+            }
+        });
+}
 
 //RUTA QUE SE UTILIZA EN CASO DE PONER UNA DIRECCION INCORRECTA
 app.use(verificarAutenticacion, function (req, res) {
@@ -946,12 +1044,12 @@ async function login() {
         //SE DIRIGE A LA PÁGINA DE REGISRO EN LA URL CON SELENIUM-WEBDRIVER
         await driver.get('https://registro.unah.edu.hn/je_login.aspx');
         //COLOCA LAS CREEDENCIALES EN EL FORMULARIO
-        await driver.findElement(By.id("MainContent_txt_cuenta")).sendKeys(sesionRegistro.usuario);
-        await driver.findElement(By.id("MainContent_txt_clave")).sendKeys(sesionRegistro.contrasenia);
+        await driver.findElement(By.id("MainContent_txt_cuenta")).sendKeys("");
+        await driver.findElement(By.id("MainContent_txt_clave")).sendKeys("");
 
         //DA CLICK EN EL BOTÓN DE INICIO
         await driver.findElement(By.id("MainContent_Button1")).click();
-        await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[4]/div[@id='MainContent_Menu1']/ul[@class='level1 static']/li[@class='static'][2]/a[@class='level1 static']")).click();
+        await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[3]/div[@id='MainContent_Menu1']/ul[@class='level1 static']/li[@class='static'][2]/a[@class='level1 static']")).click();
         return true;
     } catch (e) {
         cerrarNavegador();
@@ -1319,28 +1417,29 @@ async function extraerHistorial(totalPaginas) {
 //EXTRAE UNA SOLA PÁGINA DE REGISTROS DEL HISTORIAL (SELENIUM-WEBDRIVER)
 async function extraerPaginaHistorial() {
     //OBTIENE LA TABLA COMPLETA COMO TEXTO
-    await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/table[3]/tbody/tr[2]/td[@class='style3']/table[@id='MainContent_ASPxPageControl1']/tbody/tr[2]/td[@id='MainContent_ASPxPageControl1_CC']/div[@id='MainContent_ASPxPageControl1_C0']/table[@id='MainContent_ASPxPageControl1_ASPxGridView2']/tbody/tr/td/table[@id='MainContent_ASPxPageControl1_ASPxGridView2_DXMainTable']")).getText().then(function (promiseResult) {
-        var res = promiseResult.split("\n");
-        //RECORRE CADA FILA DE LA TABLA
-        for (i = 8; i < res.length; i++) {
-            var fila = res[i];
-            fila = fila.replace("   ", "  ");
-            var clase = fila.split(" ");
-            //CREA UN JSON CON LOS DATOS EXTRAIDOS DE LA FILA
-            var reg = {
-                codAsignatura: clase[0],
-                nombreAsignatura: clase.slice(1, clase.length - 6).toString().replace(/,/g, ' '),
-                uv: clase[clase.length - 6],
-                seccion: clase[clase.length - 5],
-                anio: clase[clase.length - 4],
-                periodo: clase[clase.length - 3],
-                calificacion: clase[clase.length - 2],
-                observacion: clase[clase.length - 1]
-            };
-            //AGREGA LA FILA EN UN ARRAY GLOBAL
-            historial.push(reg);
-        }
-    });
+    await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/table[3]/tbody/tr[2]/td[@class='style3']/table[@id='MainContent_ASPxPageControl1']/tbody/tr[2]/td[@id='MainContent_ASPxPageControl1_CC']/div[@id='MainContent_ASPxPageControl1_C0']/table[@id='MainContent_ASPxPageControl1_ASPxGridView2']/tbody/tr/td/table[@id='MainContent_ASPxPageControl1_ASPxGridView2_DXMainTable']"))
+        .getText().then(function (promiseResult) {
+            var res = promiseResult.split("\n");
+            //RECORRE CADA FILA DE LA TABLA
+            for (i = 8; i < res.length; i++) {
+                var fila = res[i];
+                fila = fila.replace("   ", "  ");
+                var clase = fila.split(" ");
+                //CREA UN JSON CON LOS DATOS EXTRAIDOS DE LA FILA
+                var reg = {
+                    codAsignatura: clase[0],
+                    nombreAsignatura: clase.slice(1, clase.length - 6).toString().replace(/,/g, ' '),
+                    uv: clase[clase.length - 6],
+                    seccion: clase[clase.length - 5],
+                    anio: clase[clase.length - 4],
+                    periodo: clase[clase.length - 3],
+                    calificacion: clase[clase.length - 2],
+                    observacion: clase[clase.length - 1]
+                };
+                //AGREGA LA FILA EN UN ARRAY GLOBAL
+                historial.push(reg);
+            }
+        });
 }
 
 //INSERTA EN LA BASE DE DATOS UN REGISTRO DE HISTORIAL
