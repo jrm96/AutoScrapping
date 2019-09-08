@@ -11,10 +11,30 @@ module.exports = {
 
 
     obtenerInfoEstudiante : function(){
-        return `SELECT A.num_anio_pk ANIO, A.num_periodo_pk PERIODO, INDICE_GLOBAL, INDICE_PERIODO, A.num_cuenta_ck, C.txt_nombre NOMBRE, C.txt_centro_estudio CENTRO_ESTUDIO, C.txt_carrera CARRERA
-                FROM 
+        return `SELECT A.num_anio_pk ANIO, A.num_periodo_pk PERIODO, INDICE_GLOBAL, INDICE_PERIODO, A.num_cuenta_ck, C.txt_nombre NOMBRE, C.txt_centro_estudio CENTRO_ESTUDIO, D.txt_nombre_carrera
+            FROM 
+            (
+                SELECT SUM(A.num_calificacion*A.num_uv)/SUM(A.num_uv) INDICE_PERIODO, A.num_anio_pk, A.num_periodo_pk, A.num_cuenta_ck
+                FROM tbl_historial A
+                LEFT JOIN tbl_seccion B 
+                ON ((B.num_seccion_pk = A.num_seccion_pk)
+                    AND (B.num_periodo_pk = A.num_periodo_pk)
+                    AND (B.num_anio_pk = A.num_anio_pk)
+                    AND (B.cod_asignatura_ck = A.cod_asignatura_ck)
+                )
+                WHERE (A.num_cuenta_ck = ?)
+                AND (A.txt_obs != 'NSP')
+                AND NOT ((A.txt_obs !='APR') AND ((A.num_anio_pk = 2017) AND (A.num_periodo_pk = 2)))
+                GROUP BY A.num_cuenta_ck, A.num_periodo_pk, A.num_anio_pk
+            ) A 
+            INNER JOIN 
+            (
+                SELECT SUM(NOTAS)/SUM(UVS) INDICE_GLOBAL, A.num_anio_pk, A.num_periodo_pk, B.CUENTA 
+                FROM tbl_historial A 
+                INNER JOIN 
                 (
-                    SELECT SUM(A.num_calificacion*A.num_uv)/SUM(A.num_uv) INDICE_PERIODO, A.num_anio_pk, A.num_periodo_pk, A.num_cuenta_ck
+                    SELECT A.num_anio_pk, A.num_periodo_pk, A.num_cuenta_ck CUENTA,
+                    SUM(A.num_calificacion*A.num_uv) NOTAS, SUM(A.num_uv) UVS, CONCAT(A.num_anio_pk, A.num_periodo_pk) ANIO_PERIODO
                     FROM tbl_historial A
                     LEFT JOIN tbl_seccion B 
                     ON ((B.num_seccion_pk = A.num_seccion_pk)
@@ -26,37 +46,18 @@ module.exports = {
                     AND (A.txt_obs != 'NSP')
                     AND NOT ((A.txt_obs !='APR') AND ((A.num_anio_pk = 2017) AND (A.num_periodo_pk = 2)))
                     GROUP BY A.num_cuenta_ck, A.num_periodo_pk, A.num_anio_pk
-                ) A 
-                INNER JOIN 
-                (
-                    SELECT SUM(NOTAS)/SUM(UVS) INDICE_GLOBAL, A.num_anio_pk, A.num_periodo_pk, CUENTA 
-                    FROM tbl_historial A 
-                    INNER JOIN 
-                    (
-                        SELECT A.num_anio_pk, A.num_periodo_pk, A.num_cuenta_ck CUENTA,
-                        SUM(A.num_calificacion*A.num_uv) NOTAS, SUM(A.num_uv) UVS, CONCAT(A.num_anio_pk, A.num_periodo_pk) ANIO_PERIODO
-                        FROM tbl_historial A
-                        LEFT JOIN tbl_seccion B 
-                        ON ((B.num_seccion_pk = A.num_seccion_pk)
-                            AND (B.num_periodo_pk = A.num_periodo_pk)
-                            AND (B.num_anio_pk = A.num_anio_pk)
-                            AND (B.cod_asignatura_ck = A.cod_asignatura_ck)
-                        )
-                        WHERE (A.num_cuenta_ck = ?)
-                        AND (A.txt_obs != 'NSP')
-                        AND NOT ((A.txt_obs !='APR') AND ((A.num_anio_pk = 2017) AND (A.num_periodo_pk = 2)))
-                        GROUP BY A.num_cuenta_ck, A.num_periodo_pk, A.num_anio_pk
-                    ) B
-                    ON (B.ANIO_PERIODO <= CONCAT(A.num_anio_pk, A.num_periodo_pk))
-                    WHERE (A.num_cuenta_ck = ?)
-                    AND (A.txt_obs != 'NSP')
-                    AND NOT ((A.txt_obs !='APR') AND ((A.num_anio_pk = 2017) AND (A.num_periodo_pk = 2)))
-                    GROUP BY A.num_periodo_pk, A.num_anio_pk
                 ) B
-                ON (A.num_anio_pk = B.num_anio_pk AND A.num_periodo_pk = B.num_periodo_pk)
-                INNER JOIN TBL_ESTUDIANTE C
-                ON (A.num_cuenta_ck = C.num_cuenta_pk)
-                ORDER BY A.num_anio_pk ASC, A.num_periodo_pk ASC`;
+                ON (B.ANIO_PERIODO <= CONCAT(A.num_anio_pk, A.num_periodo_pk))
+                WHERE (A.num_cuenta_ck = ?)
+                AND (A.txt_obs != 'NSP')
+                AND NOT ((A.txt_obs !='APR') AND ((A.num_anio_pk = 2017) AND (A.num_periodo_pk = 2)))
+                GROUP BY A.num_periodo_pk, A.num_anio_pk, CUENTA
+            ) B
+            ON (A.num_anio_pk = B.num_anio_pk AND A.num_periodo_pk = B.num_periodo_pk)
+            INNER JOIN TBL_ESTUDIANTE C
+            ON (A.num_cuenta_ck = C.num_cuenta_pk) 
+            INNER JOIN TBL_CARRERA D ON (D.cod_carrera_pk = C.cod_carrera_fk)
+            ORDER BY A.num_anio_pk ASC, A.num_periodo_pk ASC`;
     },
 
     obtenerHistorial : function(){
