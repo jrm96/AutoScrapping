@@ -21,7 +21,7 @@ WHERE (A.num_anio_ck, A.num_periodo_ck) =
 AND B.cod_asignatura_fk = "AN101" 
 GROUP BY B.cod_asignatura_fk;
 
-
+## Asignaturas que están en el periodo actual de la forma 03
 SELECT B.cod_asignatura_fk FROM tbl_forma_03 A INNER JOIN tbl_asignatura_x_plan_estudio B
 ON A.cod_asignatura_x_plan_estudio_ck = B.cod_asignatura_x_plan_estudio_pk
 WHERE (A.num_anio_ck, A.num_periodo_ck) =
