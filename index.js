@@ -74,7 +74,7 @@ app.use(
 
         // respuesta.header("Access-Control-Allow-Origin", "*") // update to match the domain you will make the request from
         // respuesta.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-        
+
         if (peticion.session.nombre) {
             //Significa que el usuario si esta logueado
             publicCompartido(peticion, respuesta, next);
@@ -911,7 +911,7 @@ app.get("/info-secciones", verificarAccesoPeticion, function (request, response)
 
 async function obtenerForma03() {
     try {
-        
+
         //ABRE EL MODAL PARA INTRODUCIR EL NÚMERO DE CUENTA PARA LA FORMA 03
         await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/table[@class='style1']/tbody/tr[2]/td[1]/a[@id='MainContent_LinkButton2']")).click();
         //INTRODUCE EL NÚMERO DE CUENTA EN EL CAMPO DEL FORMULARIO
@@ -922,15 +922,15 @@ async function obtenerForma03() {
         var clasesForma = await extraerforma();
         //EN CASO DE QUE SEA UN NÚMERO DE CUENTA INVÁLIDO, CERRARA EL MODAL QUE CONTIENE EL ALERT DE ERROR
         try {
-            await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[@id='MainContent_Panel1']/div[@class='rel']/div[@class='modal-inner-wrapper rounded-corners']/div[@class='content rounded-corners']/div[@class='close']/a[@id='MainContent_LinkButton4']")).click(); 
-        } catch (error) {}
+            await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[@id='MainContent_Panel1']/div[@class='rel']/div[@class='modal-inner-wrapper rounded-corners']/div[@class='content rounded-corners']/div[@class='close']/a[@id='MainContent_LinkButton4']")).click();
+        } catch (error) { }
         //GUARDA LA FORMA 03 EN LA BASE DE DATOS
-        if(clasesForma){
+        if (clasesForma) {
 
-            for(i = 0; i < clasesForma.length; i++){
+            for (i = 0; i < clasesForma.length; i++) {
                 await guardarForma03(clasesForma[i]);
             }
-            
+
         }
 
         return true;
@@ -949,11 +949,11 @@ async function extraerforma() {
             if (elements.length == 0) {
                 datos = await false;
             } else {
-                for(i = 2; i <= elements.length; i++){
+                for (i = 2; i <= elements.length; i++) {
                     var codAsignatura = periodo = anio = await "";
 
                     //Obtiene el nombre de la carrera
-                    
+
 
                     //Obtiene el año
                     await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[3]/table/tbody/tr/td[1]/table/tbody/tr[2]/td[@class='style12']/span[@id='MainContent_Label6']"))
@@ -962,16 +962,16 @@ async function extraerforma() {
                         });
 
                     //Obtiene el código de asignatura
-                    await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[4]/table[2]/tbody/tr[1]/td[@class='style10']/div/table[@id='MainContent_GridView1']/tbody/tr[" + i + "]/td[1]"))  
-                    .getText().then(function (promiseResult) {
+                    await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[4]/table[2]/tbody/tr[1]/td[@class='style10']/div/table[@id='MainContent_GridView1']/tbody/tr[" + i + "]/td[1]"))
+                        .getText().then(function (promiseResult) {
                             codAsignatura = promiseResult;
                         });
 
                     //Obtiene el nombre de la asignatura
                     await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[4]/table[2]/tbody/tr[1]/td[@class='style10']/div/table[@id='MainContent_GridView1']/tbody/tr[" + i + "]/td[2]"))
-                    .getText().then(function (promiseResult) {
-                        nombreAsignatura = promiseResult;
-                    });
+                        .getText().then(function (promiseResult) {
+                            nombreAsignatura = promiseResult;
+                        });
 
                     //Obtiene el periodo 
                     await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[4]/table[2]/tbody/tr[1]/td[@class='style10']/div/table[@id='MainContent_GridView1']/tbody/tr[" + i + "]/td[11]"))
@@ -980,23 +980,23 @@ async function extraerforma() {
                         });
                     //Crea el json de datos a retornar
                     await datos.push({
-                        anio : anio,
-                        codAsignatura : codAsignatura, 
-                        nombreAsignatura : nombreAsignatura,
-                        periodo : periodo,
+                        anio: anio,
+                        codAsignatura: codAsignatura,
+                        nombreAsignatura: nombreAsignatura,
+                        periodo: periodo,
                         cuenta: cuentaActual.cuenta
                     })
-                    
+
                 }
             }
         });
 
-    return datos;    
+    return datos;
 }
 
 
-function guardarForma03(forma){
-   
+function guardarForma03(forma) {
+
     console.log(forma);
     var sql = `call insertar_forma(?,?,?,?,?)`;
     //VERIFICA SI HAY PERIODO Y AÑO
@@ -1068,7 +1068,7 @@ async function cerrarNavegador() {
 //INICIO DE SESIÓN DENTRO DE LA PÁGINA DE REGISTRO (SELENIUM-WEBDRIVER)
 async function login() {
     try {
-       
+
         //SE DIRIGE A LA PÁGINA DE REGISRO EN LA URL CON SELENIUM-WEBDRIVER
         await driver.get('https://registro.unah.edu.hn/je_login.aspx');
         //COLOCA LAS CREEDENCIALES EN EL FORMULARIO
@@ -1080,7 +1080,7 @@ async function login() {
         await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[3]/div[@id='MainContent_Menu1']/ul[@class='level1 static']/li[@class='static'][2]/a[@class='level1 static']")).click();
         return true;
     } catch (e) {
-        
+
         cerrarNavegador();
         return false;
     }
@@ -1216,16 +1216,16 @@ async function escarbar() {
                     //RETROCEDE A LA PANTALLA DONDE SE SELECCIONA ABRIR EL HISTORIAL O LA FORMA03 (CON SELENIUM-WEBDRIVER)
                     await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/table[1]/tbody/tr/td[3]/a[@id='MainContent_LinkButton1']"))
                         .click();
-                    
+
                     //EXTRAE LA FORMA 03 (AÑO, PERIODO, COD_ASIGNATURA) CON SELENIUM-WEBDRIVER
                     await obtenerForma03();
 
                     //RETROCEDE A LA PANTALLA DONDE SE SELECCIONA ABRIR EL HISTORIAL O LA FORMA03 (CON SELENIUM-WEBDRIVER)
-                   
+
                     try {
                         await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[1]/table/tbody/tr/td[3]/a[@id='MainContent_LinkButton11']"))
-                        .click();
-                    } catch (error) {}
+                            .click();
+                    } catch (error) { }
 
                     //ESTABLECE LA FINALIZACIÓN DEL PROCESO DE EXTRACCIÓN EN LA CUENTA
                     cuentas[j].finalizado = await true;
@@ -1233,7 +1233,7 @@ async function escarbar() {
                     await escribirRespaldo(cuentas);
 
 
-                    
+
 
 
                     //SI ES LA ÚLTIMA CUENTA EL ESTADO PASA A FINALIZADO
@@ -1291,7 +1291,7 @@ async function irHistorial(nrocuenta) {
         await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[@id='MainContent_Panel1']/div[@class='rel']/div[@class='modal-inner-wrapper rounded-corners']/div[@class='content rounded-corners']/div[@class='body']/table[@class='style4']/tbody/tr/td/input[@id='MainContent_Button6']")).click();
 
     } catch (e) {
-        return false;eeeeee
+        return false; eeeeee
     }
 
     //VERIFICA QUE LA CUENTA INGRESADA FUE LA CORRECTA
@@ -1524,6 +1524,32 @@ async function inicializarEstado() {
             }
         }
     }
+}
+
+function predecirAprobacion() {
+    var query = 'SELECT * FROM vw_asignaturas_indice';
+
+    var asignaturaIndice = [];
+    conexion.query(query)
+        .on("result", function (resultado) {
+            asignaturaIndice.push(JSON.parse(JSON.stringify(resultado)));
+        })
+        .on("end", function () {
+            console.log(asignaturaIndice);
+            console.log("==========================")
+            console.log(asignaturaIndice[1].cod_asignatura_x_plan_estudio_pk)
+
+            query = 'select predecir_aprobacion(?,?) from DUAL'
+            for (i=0; i<asignaturaIndice.length; i++){
+                conexion.query(
+                    query,
+                    [asignaturaIndice[i].cod_asignatura_x_plan_estudio_pk, asignaturaIndice[i].indice_aprobacion],
+                    function (err, result) {
+                        if (err) throw err;
+                    }
+                );
+            }
+        });
 }
 
 app.listen(3333);
