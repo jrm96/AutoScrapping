@@ -26,7 +26,7 @@ CONTENIDO
 var mysql = require("mysql");
 var credenciales = {
     user: "root",
-    password: "rootroot",
+    password: "",
     port: "3306",
     host: "localhost",
     database: "bd_autoscraping"
@@ -908,6 +908,16 @@ app.get("/info-secciones", verificarAccesoPeticion, function (request, response)
 
 
 // });
+
+app.get("/predecir", async function (request, response) {
+    predecirAprobacion();
+
+    console.log("Predicción lista");
+
+});
+
+
+
 
 async function obtenerForma03() {
     try {
