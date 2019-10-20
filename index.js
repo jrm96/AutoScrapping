@@ -123,6 +123,7 @@ var progreso = 0;
 var error = "";
 var sesionRegistro = {};
 var estadoProgreso = "detenido";
+var planEstudio = [];
 
 
 
@@ -423,6 +424,231 @@ app.post("/sesion-registro", verificarAccesoPeticionJefe, async function (reques
 
 
 //////////6.3-PETICIONES SOBRE LA CARGA ACADÉMICA//////////////////////////////////
+
+
+//PETICIÓN PARA SUBIR LA CARGA ACADÉMICA EN LA BASE DE DATOS
+app.route("/cargaPlanEstudioBD", verificarAccesoPeticionJefe).post(async function (request, response, next) {
+    try {
+        planEstudio = await JSON.parse(request.body.planEstudio).slice();
+
+        async function registrarAsignarutasEnDB (planEstudio){
+            //agregar carrea
+            objectResponse.existe_carrera = (await executeQuery(
+                `SELECT cod_carrera_pk FROM tbl_carrera WHERE (tbl_carrera.txt_nombre_carrera = ?)`, 
+                [planEstudio[0].CARRERA]));
+
+            if (objectResponse.existe_carrera.length) {
+                console.log('carrera ' + planEstudio[0].CARRERA + ' ya existe...')
+
+                objectResponse.cod_carrera = objectResponse.existe_carrera[0].cod_carrera_pk;
+            } else {
+
+                await executeQuery(`INSERT INTO tbl_carrera(txt_nombre_carrera) VALUES (?);`, [planEstudio[0].CARRERA]);
+                objectResponse.resultAfterInsert = (await executeQuery(
+                    `SELECT cod_carrera_pk FROM tbl_carrera WHERE (tbl_carrera.txt_nombre_carrera = ?)`, 
+                    [planEstudio[0].CARRERA]));
+                objectResponse.cod_carrera = objectResponse.resultAfterInsert[0].cod_carrera_pk;
+                if (objectResponse.resultAfterInsert.length>1)
+                    await eliminarSobranteRegistros(`DELETE FROM tbl_carrera where cod_carrera_pk = ?`,
+                    objectResponse.resultAfterInsert, 'cod_carrera_pk');
+                console.log('carrera ' + planEstudio[0].CARRERA + ' registrada con exito...')
+
+            }
+            
+            //agregar plan estudio
+            objectResponse.existe_plan_estudio = (await executeQuery(
+                `SELECT cod_plan_estudio_pk FROM tbl_plan_estudio WHERE (tbl_plan_estudio.cod_carrera_fk = ?)`, 
+                [objectResponse.cod_carrera]
+            ));
+            if (objectResponse.existe_plan_estudio.length) {
+                console.log('PLAN ' + objectResponse.cod_plan_estudio + ' ya existe...')
+
+                objectResponse.cod_plan_estudio = objectResponse.existe_plan_estudio[0].cod_plan_estudio_pk;
+            } else {
+                await executeQuery(`INSERT INTO tbl_plan_estudio(cod_carrera_fk) VALUES (?);`, [objectResponse.cod_carrera]);
+                objectResponse.resultAfterInsert = (await executeQuery(
+                    `SELECT cod_plan_estudio_pk FROM tbl_plan_estudio WHERE (tbl_plan_estudio.cod_carrera_fk = ?)`, 
+                    [objectResponse.cod_carrera]
+                ));
+                console.log('Plan de estudio para '+ planEstudio[0].CARRERA +' registrado con exito...')
+                objectResponse.cod_plan_estudio = objectResponse.resultAfterInsert[0].cod_plan_estudio_pk;
+                if (objectResponse.resultAfterInsert.length>1)
+                    await eliminarSobranteRegistros(`DELETE FROM tbl_plan_estudio where cod_plan_estudio_pk = ?`,
+                    objectResponse.resultAfterInsert, 'cod_plan_estudio_pk');
+
+            }
+
+            //REGISTRAR AREAS DISTINTAS
+            var disctintAreas = [];
+            planEstudio.forEach(a => {
+                if (!disctintAreas.includes(a.AREA))
+                    disctintAreas.push(a.AREA)
+            });
+            for (da=0; da<disctintAreas.length; da++){
+               await controlRegistroAreas(disctintAreas[da]);
+            };
+            console.log('//////////////////////ENTRANDO A REGISTRAR ASIGNATURAS')
+            //REGISTRAR ASIGNATURA EN DB
+            for (asignatura_current=0; asignatura_current<planEstudio.length; asignatura_current++){
+                console.log();
+                await controlRegistroAsignatura(planEstudio[asignatura_current])
+            };
+
+            async function controlRegistroAsignatura(asignatura_current){
+                await controlRegistroAreas(asignatura_current.AREA);
+                 ////////////////////////////////////////////////////////////////////////////////////
+                //REGISTRAR ASIGNATURA
+                objectResponse.existe_asigatura = (await executeQuery(
+                    `SELECT cod_asignatura_pk FROM tbl_asignatura WHERE (tbl_asignatura.cod_asignatura_pk = ?)`, 
+                    [asignatura_current.COD_ASIGNATURA]));
+                if (objectResponse.existe_asigatura.length) {
+                    console.log(asignatura_current.ASIGNATURA + 'ya esta registrada, aqui se actualizaria...');
+                    // await executeQuery(`UPDATE tbl_asignatura SET cod_area_pk = ?, txt_nombre_asignatura = ? 
+                    //     WHERE (tbl_asignatura.cod_asignatura_pk = ?) VALUES (?,?,?);`, [asignatura_current.COD_ASIGNATURA, objectResponse.cod_area, asignatura_current.ASIGNATURA]);
+                } else {
+                    try {
+                        await executeQuery(`INSERT INTO tbl_asignatura(cod_asignatura_pk, cod_area_pk, txt_nombre_asignatura) VALUES (?,?,?);`, [asignatura_current.COD_ASIGNATURA, objectResponse.cod_area, asignatura_current.ASIGNATURA]);
+
+                    }catch(err){}
+                    console.log(asignatura_current.ASIGNATURA + ' registrada exitosamente...');
+
+                    objectResponse.resultAfterInsertArea = (await executeQuery(
+                        `SELECT cod_asignatura_pk FROM tbl_asignatura WHERE (tbl_asignatura.cod_asignatura_pk = ?)`, 
+                        [asignatura_current.COD_ASIGNATURA]));;
+                    objectResponse.cod_asignatura = objectResponse.resultAfterInsertArea[0].cod_area_pk;
+                }
+
+                ///////////////////////////////////////////////////////////////////////////////////////////////////
+                //REGISTRAR ASIGNATURA POR PLAN ESTUDIO
+                objectResponse.existe_asigatura_x_plan_estudio = (await executeQuery(
+                    `SELECT cod_asignatura_x_plan_estudio_pk FROM tbl_asignatura_x_plan_estudio 
+                    WHERE (tbl_asignatura_x_plan_estudio.cod_asignatura_fk = ?) 
+                    and (tbl_asignatura_x_plan_estudio.cod_plan_estudio_fk = ?)`, 
+                    [asignatura_current.COD_ASIGNATURA, objectResponse.cod_plan_estudio]));
+
+                if (objectResponse.existe_asigatura_x_plan_estudio.length) {
+                    console.log('----Su asignatura por plan estudio, ya existe, aqui se actualizaria.');
+
+                    objectResponse.cod_asignatura_x_plan_estudio = objectResponse.existe_asigatura_x_plan_estudio[0].cod_asignatura_x_plan_estudio_pk;
+                    //Si existe la actualiza y guarda el id
+                    // await executeQuery(`UPDATE tbl_asignatura_x_plan_estudio SET bol_pertenece = ? 
+                    //     WHERE (tbl_asignatura_x_plan_estudio.cod_asignatura_plan_estudio_pk = ?) VALUES (?,?);`, [asignatura_current.PERTENECE, objectResponse.cod_asignatura_x_plan_estudio]);
+                } else {
+                    try{
+                        await executeQuery(`INSERT INTO tbl_asignatura_x_plan_estudio (cod_plan_estudio_fk, cod_asignatura_fk, bol_pertenece_carrera) 
+                        VALUES (?, ?, ?);`, [objectResponse.cod_plan_estudio, asignatura_current.COD_ASIGNATURA, asignatura_current.PERTENECE]);
+
+                    }catch(err){};
+                    console.log('----Su asignatura por plan estudio, registrada exitosamente.');
+                    objectResponse.resultAfterInsert = (await executeQuery(
+                        `SELECT cod_asignatura_x_plan_estudio_pk FROM tbl_asignatura_x_plan_estudio 
+                            WHERE (tbl_asignatura_x_plan_estudio.cod_asignatura_fk = ?) and (tbl_asignatura_x_plan_estudio.cod_plan_estudio_fk = ?)`, 
+                            [asignatura_current.COD_ASIGNATURA, objectResponse.cod_plan_estudio]));
+                    objectResponse.cod_asignatura_x_plan_estudio = objectResponse.resultAfterInsert[0].cod_asignatura_x_plan_estudio_pk;
+                    if (objectResponse.resultAfterInsert.length)
+                        await eliminarSobranteRegistros(`DELETE FROM tbl_asignatura_x_plan_estudio where cod_asignatura_x_plan_estudio_pk = ?`,
+                        objectResponse.resultAfterInsert, 'cod_asignatura_x_plan_estudio_pk');
+                }
+
+                ///////////////////////////////////////////////////////////////////////////////////////////////////
+                //REGISTRAR REQUISITO POR ASIGNATURA
+                if (asignatura_current.COD_ASIGNATURAS_REQUISITO.length) {
+                    for (requisito=0; requisito < asignatura_current.COD_ASIGNATURAS_REQUISITO.length; requisito++){
+                       await controlRegistroRequisitoDeAsignatura(asignatura_current.COD_ASIGNATURA, asignatura_current.COD_ASIGNATURAS_REQUISITO[requisito]);
+                    }
+                }
+            };
+
+            async function controlRegistroRequisitoDeAsignatura(cod_asignatura, cod_asig_req){
+        
+                    //Extraer "cod_asignatura_por_plan_estudio" de la asignatura requisito
+                    objectResponse.existe_cod_asig_x_plan_requisito = (await executeQuery(
+                        `SELECT cod_asignatura_x_plan_estudio_pk FROM tbl_asignatura_x_plan_estudio 
+                        WHERE (tbl_asignatura_x_plan_estudio.cod_asignatura_fk = ?) and (tbl_asignatura_x_plan_estudio.cod_plan_estudio_fk = ?)`, [cod_asig_req, objectResponse.cod_plan_estudio]))
+
+                    objectResponse.cod_asig_x_plan_requisito =  "";
+                    if (objectResponse.existe_cod_asig_x_plan_requisito.length){
+
+                        objectResponse.cod_asig_x_plan_requisito = objectResponse.existe_cod_asig_x_plan_requisito[0].cod_asignatura_x_plan_estudio_pk;
+
+                         //verificar si ya se regisro como requisito de la asignatura
+                        objectResponse.existe_dependencia = (await executeQuery(
+                            `SELECT cod_asignatura_x_plan_estudio_ck FROM tbl_requisito_x_asignatura 
+                            WHERE (tbl_requisito_x_asignatura.cod_asignatura_x_plan_estudio_ck = ?) 
+                            and (tbl_requisito_x_asignatura.cod_asignatura_x_plan_estudio_requisito_ck = ?)`, [objectResponse.cod_asignatura_x_plan_estudio,  objectResponse.cod_asig_x_plan_requisito]));
+            
+                        //Si no existe la dependecia la crea
+                        if (!objectResponse.existe_dependencia.length) {
+                            try{
+                                await executeQuery(`INSERT INTO tbl_requisito_x_asignatura 
+                                (cod_asignatura_x_plan_estudio_ck, cod_asignatura_x_plan_estudio_requisito_ck) VALUES (?, ?);`, [objectResponse.cod_asignatura_x_plan_estudio, objectResponse.cod_asig_x_plan_requisito]);
+                            }catch(err){}
+                            console.log('No existia el requisito '+ cod_asig_req +' para '+cod_asignatura+', se creo con exito.')
+                        }else{
+                            console.log('--Ya existia el requisito '+ cod_asig_req +' para '+cod_asignatura+'.')
+                        }
+                    }
+        
+                    //verificar si ya se regisro como requisito de la asignatura
+                    objectResponse.existe_req_asig = (await executeQuery(
+                        `SELECT cod_asignatura_x_plan_estudio_ck FROM tbl_requisito_x_asignatura 
+                        WHERE (tbl_requisito_x_asignatura.cod_asignatura_x_plan_estudio_ck = ?) 
+                        and (tbl_requisito_x_asignatura.cod_asignatura_x_plan_estudio_requisito_ck = ?)`, [objectResponse.cod_asignatura_x_plan_estudio, objectResponse. cod_asig_x_plan_requisito]));
+        
+                    //Si no existe la dependecia la crea
+                    if (!objectResponse.existe_req_asig.length) {
+                        await executeQuery(`INSERT INTO tbl_requisito_x_asignatura 
+                        (cod_asignatura_x_plan_estudio_ck, cod_asignatura_x_plan_estudio_requisito_ck) VALUES (?, ?);`, [objectResponse.cod_asignatura_x_plan_estudio, cod_asig_x_plan_requisito]);
+                    }
+            }
+
+            async function controlRegistroAreas(txt_nombre_area){
+                objectResponse.existe_area = await executeQuery(
+                    `SELECT cod_area_pk FROM tbl_areas WHERE (tbl_areas.txt_nombre_area = ?)`, 
+                    [txt_nombre_area]);
+                if (objectResponse.existe_area.length) {
+                    console.log('AREA '+txt_nombre_area+' ya existe...')
+                    objectResponse.cod_area = await objectResponse.existe_area[0].cod_area_pk;
+                } else {
+                    console.log('  AREA '+txt_nombre_area+' no existe, creando...')
+                    await executeQuery(`INSERT INTO tbl_areas(txt_nombre_area) VALUES (?);`, [txt_nombre_area]);
+                    objectResponse.resultAfterInsertArea = (await executeQuery(
+                        `SELECT cod_area_pk FROM tbl_areas WHERE (tbl_areas.txt_nombre_area = ?)`, 
+                        [txt_nombre_area]));
+                    objectResponse.cod_carrera = objectResponse.resultAfterInsertArea[0].cod_area_pk;
+                    if (objectResponse.resultAfterInsertArea.length)
+                        await eliminarSobranteRegistros(`DELETE FROM tbl_areas where cod_area_pk = ?`,
+                        objectResponse.resultAfterInsertArea, 'cod_area_pk');
+                } 
+            }
+            async function eliminarSobranteRegistros(sql, arraySobrantes, keyField){
+                for (d=1;d<arraySobrantes.length; d++){
+                    await executeQuery(sql, [arraySobrantes[d][keyField]]);
+                }
+            }
+            
+            function executeQuery(sql, args) {
+                conexion.query(sql, args)
+                return new Promise((resolve, reject) => {
+                    conexion.query(sql, args, (err, rows) => {
+                        if (err) return reject(err);
+                        resolve(rows);
+                    });
+                })
+            };
+
+       }
+
+
+       console.log('/////////////////////COMIENZA LA FUNCION CN////////////////////////')
+       var objectResponse = {};
+       await registrarAsignarutasEnDB(planEstudio);
+       response.send(`Plan de estudio subido a la Base de Datos con exíto!`);   
+       console.log('//////////////////////TERMINO LA FUNCION CN////////////////////////')
+    } catch (e) {
+        response.send("Se produjo un error, intentelo de nuevo: " + e);
+    }
+});
 
 //PETICIÓN PARA SUBIR LA CARGA ACADÉMICA EN LA BASE DE DATOS
 app.route("/cargaAcademicaBD", verificarAccesoPeticionJefe).post(async function (request, response, next) {
