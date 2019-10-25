@@ -26,7 +26,7 @@ CONTENIDO
 var mysql = require("mysql");
 var credenciales = {
     user: "root",
-    password: "rootroot",
+    password: "",
     port: "3306",
     host: "localhost",
     database: "bd_autoscraping"
@@ -593,12 +593,12 @@ app.route("/cargaPlanEstudioBD", verificarAccesoPeticionJefe).post(async functio
                     objectResponse.existe_req_asig = (await executeQuery(
                         `SELECT cod_asignatura_x_plan_estudio_ck FROM tbl_requisito_x_asignatura 
                         WHERE (tbl_requisito_x_asignatura.cod_asignatura_x_plan_estudio_ck = ?) 
-                        and (tbl_requisito_x_asignatura.cod_asignatura_x_plan_estudio_requisito_ck = ?)`, [objectResponse.cod_asignatura_x_plan_estudio, objectResponse. cod_asig_x_plan_requisito]));
+                        and (tbl_requisito_x_asignatura.cod_asignatura_x_plan_estudio_requisito_ck = ?)`, [objectResponse.cod_asignatura_x_plan_estudio, objectResponse.cod_asig_x_plan_requisito]));
         
                     //Si no existe la dependecia la crea
                     if (!objectResponse.existe_req_asig.length) {
                         await executeQuery(`INSERT INTO tbl_requisito_x_asignatura 
-                        (cod_asignatura_x_plan_estudio_ck, cod_asignatura_x_plan_estudio_requisito_ck) VALUES (?, ?);`, [objectResponse.cod_asignatura_x_plan_estudio, cod_asig_x_plan_requisito]);
+                        (cod_asignatura_x_plan_estudio_ck, cod_asignatura_x_plan_estudio_requisito_ck) VALUES (?, ?);`, [objectResponse.cod_asignatura_x_plan_estudio, objectResponse.cod_asig_x_plan_requisito]);
                     }
             }
 
