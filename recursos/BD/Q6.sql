@@ -117,12 +117,11 @@ select predecir_aprobacion(2, 50);
 
 
 
-delimiter //
-
-CREATE PROCEDURE prediccion_forma_03 () 
-BEGIN	
-
-
-END //
-
-delimiter ;
+CREATE VIEW vw_estudiantes_prediccion AS
+SELECT COUNT(*) FROM tbl_estudiante a
+ WHERE a.cod_carrera_fk = 
+ (SELECT cod_carrera_pk FROM tbl_carrera b WHERE b.txt_nombre_carrera = 
+ 	(SELECT txt_valor FROM tbl_parametro c WHERE c.cod_parametro_pk = "cod_carrera_prediccion"));
+ 	
+ 	
+ 	SELECT * from vw_estudiantes_prediccion

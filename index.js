@@ -1549,7 +1549,34 @@ function predecirAprobacion() {
             console.log("==========================")
             console.log(asignaturaIndice[1].cod_asignatura_x_plan_estudio_pk)
 
-            query = 'select predecir_aprobacion(?,?) from DUAL'
+            query = 'select * from predecir_aprobacion(?,?)'
+            for (i=0; i<asignaturaIndice.length; i++){
+                conexion.query(
+                    query,
+                    [asignaturaIndice[i].cod_asignatura_x_plan_estudio_pk, asignaturaIndice[i].indice_aprobacion],
+                    function (err, result) {
+                        if (err) throw err;
+                    }
+                );
+            }
+        });
+}
+
+function calculoAsignaturasPredecidas() {
+    var query = 'SELECT * FROM vw_estudiantes_prediccion';
+
+    var asignaturaIndice = [];
+    conexion.query(query)
+        .on("result", function (resultado) {
+            asignaturaIndice.push(JSON.parse(JSON.stringify(resultado)));
+        })
+        .on("end", function () {
+            console.log(asignaturaIndice);
+            console.log("==========================")
+
+            //Obtener las clases que puede llevar cada estudiante
+            // e insertarlas en la tabla asignaturas predecidas
+            query = ''
             for (i=0; i<asignaturaIndice.length; i++){
                 conexion.query(
                     query,
