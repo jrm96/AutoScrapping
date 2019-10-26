@@ -1087,7 +1087,9 @@ async function login() {
 
         //DA CLICK EN EL BOTÓN DE INICIO
         await driver.findElement(By.id("MainContent_Button1")).click();
-        await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[3]/div[@id='MainContent_Menu1']/ul[@class='level1 static']/li[@class='static'][2]/a[@class='level1 static']")).click();
+        // await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[4]/div[@id='MainContent_Menu1']/ul[@class='level1 static']/li[@class='static'][2]/a[@class='level1 static']")).click();
+                                        //    /html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[4]/div[@id='MainContent_Menu1']/ul[@class='level1 static']/li[@class='static'][2]/a[@class='level1 static']
+        await driver.findElement(By.linkText("Informacion de Estudiante|")).click()
         return true;
     } catch (e) {
 
@@ -1549,7 +1551,7 @@ function predecirAprobacion() {
             console.log("==========================")
             console.log(asignaturaIndice[1].cod_asignatura_x_plan_estudio_pk)
 
-            query = 'select * from predecir_aprobacion(?,?)'
+            query = 'select predecir_aprobacion(?,?) from dual'
             for (i=0; i<asignaturaIndice.length; i++){
                 conexion.query(
                     query,
