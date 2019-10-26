@@ -615,7 +615,7 @@ app.route("/cargaPlanEstudioBD", verificarAccesoPeticionJefe).post(async functio
                     objectResponse.resultAfterInsertArea = (await executeQuery(
                         `SELECT cod_area_pk FROM tbl_areas WHERE (tbl_areas.txt_nombre_area = ?)`, 
                         [txt_nombre_area]));
-                    objectResponse.cod_carrera = objectResponse.resultAfterInsertArea[0].cod_area_pk;
+                    objectResponse.cod_area = objectResponse.resultAfterInsertArea[0].cod_area_pk;
                     if (objectResponse.resultAfterInsertArea.length)
                         await eliminarSobranteRegistros(`DELETE FROM tbl_areas where cod_area_pk = ?`,
                         objectResponse.resultAfterInsertArea, 'cod_area_pk');
