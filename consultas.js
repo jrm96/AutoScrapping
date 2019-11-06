@@ -584,6 +584,36 @@ module.exports = {
         AND C.cod_asignatura_pk IN (?) 
             AND C.cod_area_pk IN (?) 
             AND B.num_docente_ck IN (?) `;
+    },
+
+
+    ///////////////////////////////////////////////////////////////////////////////
+    ///CONSULTAS PARA LA GESTIÓN DE PARÁMETROS//////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+
+
+    obtenerCarreras : function(){
+        return `SELECT cod_carrera_pk as codCarrera, txt_nombre_carrera as nombreCarrera FROM bd_autoscraping.tbl_carrera`;
+    },
+    
+    obtenerParametros : function(){
+        return `SELECT cod_parametro_pk as parametro, txt_valor as valor, txt_descripcion as descripcion FROM bd_autoscraping.tbl_parametro;`;
+    },
+
+
+
+
+    ///////////////////////////////////////////////////////////////////////////////
+    ///CONSULTAS SOBRE EL RESULTADO DE LA PREDICCIÓN///////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////
+
+
+    obtenerAsigPredecidas : function(){
+        return `select count(*) as numEstudiantes, b.cod_asignatura_fk as asignatura 
+                from bd_autoscraping.tbl_asignatura_predecida a
+                inner join bd_autoscraping.tbl_asignatura_x_plan_estudio b
+                on(a.cod_asignatura_x_plan_estudio_ck = b.cod_asignatura_x_plan_estudio_pk)
+                group by a.cod_asignatura_x_plan_estudio_ck;`;
     }
 
 }
