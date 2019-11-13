@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Estadistícas por Estudiante</title>
     <link rel="shorcut icon" href="img/logo-carrera-ingenieria-en-sistemas.png">
@@ -16,147 +17,165 @@
 
     <link rel="stylesheet" href="css/jquery-ui.css">
 </head>
+
 <body style="background-color: #ffffe6">
 
-    <nav class="navbar navbar-inverse" id = "nav" style="background-color: #003366;">
-          <div class="container-fluid">
+    <nav class="navbar navbar-inverse" id="nav" style="background-color: #003366;">
+        <div class="container-fluid">
             <div class="navbar-header">
-              <a class="navbar-brand" href="inicio.html">AutoScraping</a>
+                <a class="navbar-brand" href="inicio.html">AutoScraping</a>
             </div>
             <ul class="nav navbar-nav">
-              <li><a href="prediccion.html">Atrás</a></li>
-              <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Categorías<span class="caret"></span></a>
-                <ul class="dropdown-menu">
-                    <li><a href="estadistica.html">Estadística</a></li>
-                    <li><a href="carga.html">Carga Académica</a></li>
-                    <li><a href="extraccion_scraping.html">Extracción de Datos</a></li>
-                </ul>
-              </li>
-              <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Estadística<span class="caret"></span></a>
-                <ul class="dropdown-menu">
-                    <li><a href="estadistica_categoria.html">Estadística por Categoría</a></li>
-                    <li><a href="estadistica_estudiante.html">Estadística por Estudiante</a></li>
-                </ul>
-              </li>
+                <li><a href="prediccion.html">Atrás</a></li>
+                <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Categorías<span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="estadistica.html">Estadística</a></li>
+                        <li><a href="carga.html">Carga Académica</a></li>
+                        <li><a href="extraccion_scraping.html">Extracción de Datos</a></li>
+                    </ul>
+                </li>
+                <li class="dropdown"><a class="dropdown-toggle" data-toggle="dropdown" href="#">Estadística<span class="caret"></span></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="estadistica_categoria.html">Estadística por Categoría</a></li>
+                        <li><a href="estadistica_estudiante.html">Estadística por Estudiante</a></li>
+                    </ul>
+                </li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 <li><button type="button" class="btn btn-link navbar-btn" data-toggle="modal" data-target="#myModal" style="text-decoration: none;">Acerca de</button></li>
                 <li>
-              <li><a href="/logout"><span class="glyphicon glyphicon-log-in"></span> Cerrar Sesión</a></li>
+                    <li><a href="/logout"><span class="glyphicon glyphicon-log-in"></span> Cerrar Sesión</a></li>
             </ul>
-          </div>
+        </div>
     </nav>
-<div class="container" id="contenedor-principal" style="background-color: white; border-radius: 25px;">
+    <div class="container" id="contenedor-principal" style="background-color: white; border-radius: 25px;">
 
-   <!-- MODAL -->
-      <div class="modal fade" id="myModal" role="dialog">
-          <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-              <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title">Acerca de AutoScraping</h4>
-              </div>
-              <div class="modal-body">
-                <p><strong>AutoScraping</strong></p>
-                <p>Fue creado por estudiantes de Ingeniería en Sistemas de la UNAH-CU el tercer período académico de 2018, con el proposito de facilitar estádicas a traves de la automatización de procesos. Asimismo, brindar una herramienta para la toma de deciciones del departamento de <strong>Ingeniería en Sistemas</strong> del Centro Universitario.</p>
-                
+        <!-- MODAL -->
+        <div class="modal fade" id="myModal" role="dialog">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Acerca de AutoScraping</h4>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>AutoScraping</strong></p>
+                        <p>Fue creado por estudiantes de Ingeniería en Sistemas de la UNAH-CU el tercer período académico de 2018, con el proposito de facilitar estádicas a traves de la automatización de procesos. Asimismo, brindar una herramienta para la
+                            toma de deciciones del departamento de <strong>Ingeniería en Sistemas</strong> del Centro Universitario.</p>
+
+                        <hr>
+                        <strong>Integrantes:</strong>
+                        <br>
+                        <table class="table">
+                            <thead>
+                                <th>Nombre</th>
+                                <th>Correo</th>
+                            </thead>
+                            <tr>
+                                <td>José Ángel Zúniga Turcios</td>
+                                <td>jazt9513@gmail.com</td>
+                            </tr>
+                            <tr>
+                                <td>Alma Violeta Vásquez</td>
+                                <td>almavioleta96@gmail.com</td>
+                            </tr>
+                            <tr>
+                                <td>Josué Rigoberto Murillo Ramos</td>
+                                <td>josuerigoberto42@gmail.com</td>
+                            </tr>
+                            <tr>
+                                <td>John Keny Leverón Alvarenga</td>
+                                <td>jkleveronjr@gmail.com</td>
+                            </tr>
+                            <tr>
+                                <td>Oscar Gabriel Alonzo Moreno</td>
+                                <td>firstdrw@gmail.com</td>
+                            </tr>
+                            <tr>
+                                <td>Gabriela Yokasta Sanabria García</td>
+                                <td>yokastag21@gmail.com</td>
+                            </tr>
+                        </table>
+                        <hr>
+                        <p class="text-center">Tegucigalpa M.D.C - Diciembre de 2018</p>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" data-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- MODAL -->
+
+        <div class="row">
+            <div class="col-md-12">
+                <h1 style="text-align: center;">Resultado de Predicción</h1>
+
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
                 <hr>
-                <strong>Integrantes:</strong>
-                <br>
-                <table class="table">
-                  <thead>
-                    <th>Nombre</th>
-                    <th>Correo</th>
-                  </thead>
-                  <tr>
-                    <td>José Ángel Zúniga Turcios</td>
-                    <td>jazt9513@gmail.com</td>
-                  </tr>
-                  <tr>
-                    <td>Alma Violeta Vásquez</td>
-                    <td>almavioleta96@gmail.com</td>
-                  </tr>
-                  <tr>
-                    <td>Josué Rigoberto Murillo Ramos</td>
-                    <td>josuerigoberto42@gmail.com</td>
-                  </tr>
-                  <tr>
-                    <td>John Keny Leverón Alvarenga</td>
-                    <td>jkleveronjr@gmail.com</td>
-                  </tr>
-                  <tr>
-                    <td>Oscar Gabriel Alonzo Moreno</td>
-                    <td>firstdrw@gmail.com</td>
-                  </tr>
-                  <tr>
-                    <td>Gabriela Yokasta Sanabria García</td>
-                    <td>yokastag21@gmail.com</td>
-                  </tr>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <form class="form">
+                    <div class="row">
+                        <div class="col-md-2 col-sm-4">
+                            <label for="periodos_inactivo"># Periodos inactivos:</label>
+                            <input class="form-control" type="number" placeholder="Periodos inactivo" id="periodos_inactivos" max="999" min="0" maxlength="3" autocomplete="off" value="3">
+                        </div>
+                        <div class="col-md-2 col-sm-4">
+                            <label for="periodo">Periodo predecido:</label>
+                            <select id="periodo" class="form-control">
+                          <!-- <option value="" disabled selected>Seleccione el periodo predecido que desea ver</option> -->
+                             </select>
+                        </div>
+                        <div class="col-md-3 col-sm-4">
+                            <label for="carrera">Carrera predecida:</label>
+                            <select id="carrera" class="form-control">
+                          <!-- <option value="" disabled selected>Seleccione el periodo predecido que desea ver</option> -->
+                             </select>
+                        </div>
+                        <div class="col-md-3 col-sm-6">
+                            <label for="predecida">Asignaturas:</label>
+                            <select id="predecida" class="form-control">
+                              <option value="2" >Ver todas</option>
+                              <option value="0" >Ver asignaturas no predecidas</option>
+                              <option value="1" >Ver asignaturas predecidas</option>                  
+                            </select>
+                        </div>
+                        <div class="col-md-2 col-sm-6">
+                            <label for=""></label>
+                            <input type="button" class="btn btn-block btn-primary form-control" id="btn-buscar" value="Filtrar">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-md-12">
+                <table id="tablePrediccion" class="table">
+                    <thead>
+                        <tr>
+                            <th>Código de asignatura</th>
+                            <th>Nombre de asignatura</th>
+                            <th>Número de estudiantes</th>
+
+                        </tr>
+                    </thead>
                 </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
                 <hr>
-                <p class="text-center">Tegucigalpa M.D.C - Diciembre de 2018</p>
-               
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-success" data-dismiss="modal">Cerrar</button>
-              </div>
-          </div>
-      </div>
-      </div>
-      <!-- MODAL -->
-    
-    <div class="row">
-        <div class="col-md-12">
-            <h1 style="text-align: center;">Resultado de predicciones</h1>
-            
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
-            <hr>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
-            <form class="form-inline">
-                <label for="periodos_inactivo">Número de periodos inactivos:</label>
-                <br>
-                <input class="form-control" type="number" placeholder="Periodos inactivo" id="periodos_inactivos" max="999" min="0" maxlength="3" autocomplete="off" value = "3" >
-                <input type="button" class="btn btn-primary" id="btn-buscar" value="Buscar">
-            </form>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
-            <hr>
-        </div>
-    </div>
-    
-    <div class="row">
-        <div class="col-md-12">
-            <h3></h3>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
-            <table id="tablePrediccion" class="table">
-                <thead>
-                    <tr>
-                        <th>Código de asignatura</th>
-                        <th>Nombre de asignatura</th>
-                        <th>Número de estudiantes</th>
-                        
-                    </tr>
-                </thead>
-            </table>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
-            <hr>
-        </div>
-    </div>
-    <!-- <div class="row">
+        <!-- <div class="row">
         <div class="col-md-12">
             <div id="grafico">
                 <h3>Seguimiento de Calificaciones:</h3>
@@ -166,13 +185,13 @@
             </div>
         </div>
     </div> -->
-</div>
+    </div>
 
-<script src="js/jquery.min.js"></script>
-<script src="js/bootstrap3.min.js"></script>
-<script src="js/Chart.bundle.min.js"></script>
-<script src="plugins/datatables/datatables.min.js"></script>
-<script src="js/controlador.prediccion_resultado.js"></script>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap3.min.js"></script>
+    <script src="js/Chart.bundle.min.js"></script>
+    <script src="plugins/datatables/datatables.min.js"></script>
+    <script src="js/controlador.prediccion_resultado.js"></script>
 
 </body>
 

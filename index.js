@@ -123,7 +123,7 @@ var sesionRegistro = {};
 var estadoProgreso = "detenido";
 var planEstudio = [];
 var progresoPlanEstudio = 0;
-var enPrediccion = false;
+var enPrediccion = 0;
 
 
 
@@ -326,9 +326,7 @@ app.route("/extraccion", verificarAccesoPeticionJefe).post(async function(reques
 
 //PETICIÓN PARA OBTENER EL PROGRESO DE LA EXTRACCIÓN DE DATOS
 app.post("/progreso", verificarAccesoPeticionJefe, async function(request, response) {
-    var equiProgress = progresoPlanEstudio;
-    if (progresoPlanEstudio >= 100) progresoPlanEstudio = 0;
-    response.send({ porcentaje: progreso, estado: estadoProgreso, err: error, progresoPlan: equiProgress });
+    response.send({ porcentaje: progreso, estado: estadoProgreso, err: error, progresoPlan: progresoPlanEstudio });
 
 });
 
@@ -337,6 +335,7 @@ app.post("/pausarProgreso", verificarAccesoPeticionJefe, async function(request,
     estadoProgreso = "pausado";
     await guardarEstado();
     response.send(true);
+    console.log("Se pausó la extracción")
 });
 
 //PETICIÓN PARA DETENER LA EXTRACCIÓN DE DATOS
@@ -345,6 +344,7 @@ app.post("/detenerProgreso", verificarAccesoPeticionJefe, async function(request
     await guardarEstado();
     progreso = -1;
     sesionRegistro = {};
+    console.log("Se detuvo la extracción");
 
 });
 
@@ -369,6 +369,7 @@ app.post("/reanudarProgreso", verificarAccesoPeticionJefe, async function(reques
 
         //Eliminar el archivo de respaldo en este punto
     } catch (e) {
+        console.log(e);
         estadoProgreso = await "pausado";
         await guardarEstado();
         //CIERRA EL NAVEGADOR CON SELENIUM-WEBDRIVER
@@ -386,6 +387,7 @@ app.get("/finalizado", verificarAccesoPeticionJefe, async function(request, resp
     progreso = await 0;
     response.send(true);
     sesionRegistro = {};
+    console.log("Se finalizó la extracción")
 
 
 });
@@ -414,7 +416,11 @@ app.post("/sesion-registro", verificarAccesoPeticionJefe, async function(request
     sesionRegistro = await { usuario: numEmp, contrasenia: passEmp };
     abrirNavegador();
     var aprobacion = await login();
-    console.log(aprobacion);
+    if (aprobacion) {
+        console.log("Se inició sesión");
+    } else {
+        console.log("No se inició sesión");
+    }
     cerrarNavegador()
 
     await response.send({ login: aprobacion, estado: estadoProgreso });
@@ -431,6 +437,7 @@ app.post("/sesion-registro", verificarAccesoPeticionJefe, async function(request
 //PETICIÓN PARA SUBIR LA CARGA ACADÉMICA EN LA BASE DE DATOS
 app.route("/cargaPlanEstudioBD", verificarAccesoPeticionJefe).post(async function(request, response, next) {
     try {
+        progresoPlanEstudio = 0;
         planEstudio = await JSON.parse(request.body.planEstudio).slice();
 
         async function registrarAsignarutasEnDB(planEstudio) {
@@ -458,30 +465,34 @@ app.route("/cargaPlanEstudioBD", verificarAccesoPeticionJefe).post(async functio
 
             // }
             objectResponse.cod_carrera = planEstudio[0].COD_CARRERA;
-            progresoPlanEstudio += 10;
+            // progresoPlanEstudio += 10;
 
             //agregar plan estudio
             objectResponse.existe_plan_estudio = (await executeQuery(
                 `SELECT cod_plan_estudio_pk FROM tbl_plan_estudio WHERE (tbl_plan_estudio.cod_carrera_fk = ?)`, [objectResponse.cod_carrera]
             ));
-            progresoPlanEstudio += 10;
+            progresoPlanEstudio += ((progresoPlanEstudio + 5) <= 100) ? 5 : 0;
+            // progresoPlanEstudio += 10;
             if (objectResponse.existe_plan_estudio.length) {
-                console.log('PLAN ' + objectResponse.cod_plan_estudio + ' ya existe...')
-
                 objectResponse.cod_plan_estudio = objectResponse.existe_plan_estudio[0].cod_plan_estudio_pk;
+                // console.log('PLAN ' + objectResponse.cod_plan_estudio + ' ya existe...');
+                await executeQuery(`UPDATE tbl_plan_estudio SET num_aprobadas_requeridas = ?, num_optativas_aprobadas_requeridas = ? 
+                    WHERE tbl_plan_estudio.cod_plan_estudio_pk = ?`, [request.body.asignaturasRequeridas, request.body.optativasRequeridas, objectResponse.cod_plan_estudio]);
             } else {
-                await executeQuery(`INSERT INTO tbl_plan_estudio(cod_carrera_fk) VALUES (?);`, [objectResponse.cod_carrera]);
+                await executeQuery(`INSERT INTO tbl_plan_estudio(cod_carrera_fk, num_aprobadas_requeridas, num_optativas_aprobadas_requeridas) 
+                    VALUES (?,?,?);`, [objectResponse.cod_carrera, request.body.asignaturasRequeridas, request.body.optativasRequeridas]);
                 objectResponse.resultAfterInsert = (await executeQuery(
                     `SELECT cod_plan_estudio_pk FROM tbl_plan_estudio WHERE (tbl_plan_estudio.cod_carrera_fk = ?)`, [objectResponse.cod_carrera]
                 ));
-                console.log('Plan de estudio para ' + planEstudio[0].CARRERA + ' registrado con exito...')
+                // console.log('Plan de estudio para ' + planEstudio[0].CARRERA + ' registrado con exito...')
                 objectResponse.cod_plan_estudio = objectResponse.resultAfterInsert[0].cod_plan_estudio_pk;
                 if (objectResponse.resultAfterInsert.length > 1)
                     await eliminarSobranteRegistros(`DELETE FROM tbl_plan_estudio where cod_plan_estudio_pk = ?`,
                         objectResponse.resultAfterInsert, 'cod_plan_estudio_pk');
 
             }
-            progresoPlanEstudio += 10;
+            progresoPlanEstudio += ((progresoPlanEstudio + 15) <= 100) ? 15 : 0;
+            // progresoPlanEstudio += 10;
 
             //REGISTRAR AREAS DISTINTAS
             var disctintAreas = [];
@@ -489,26 +500,33 @@ app.route("/cargaPlanEstudioBD", verificarAccesoPeticionJefe).post(async functio
                 if (!disctintAreas.includes(a.AREA))
                     disctintAreas.push(a.AREA)
             });
-            var porcnt = 15;
+            var porcnt = 20;
             var cumulo = 0;
             for (da = 0; da < disctintAreas.length; da++) {
                 await controlRegistroAreas(disctintAreas[da]);
-                progresoPlanEstudio += (((((da + 1) * 100) / disctintAreas.length) * 0.01) * porcnt);
-                cumulo += (((((da + 1) * 100) / disctintAreas.length) * 0.01) * porcnt);
+                let cum = (((((da + 1) * 100) / disctintAreas.length) * 0.01) * porcnt);
+                cum = ((progresoPlanEstudio + cum) <= 100) ? cum : 0;
+                progresoPlanEstudio += cum;
+                cumulo += cum;
             };
             progresoPlanEstudio -= cumulo;
-            progresoPlanEstudio += porcnt;
+            progresoPlanEstudio += ((progresoPlanEstudio + porcnt) <= 100) ? porcnt : (100 - progresoPlanEstudio);
+            // progresoPlanEstudio += porcnt;
+            porcnt = 50;
             cumulo = 0;
-            console.log('//////////////////////ENTRANDO A REGISTRAR ASIGNATURAS')
-                //REGISTRAR ASIGNATURA EN DB
+            // console.log('//////////////////////ENTRANDO A REGISTRAR ASIGNATURAS')
+            //REGISTRAR ASIGNATURA EN DB
             for (asignatura_current = 0; asignatura_current < planEstudio.length; asignatura_current++) {
-                console.log();
+                // console.log();
                 await controlRegistroAsignatura(planEstudio[asignatura_current]);
-                progresoPlanEstudio += (((((asignatura_current + 1) * 100) / planEstudio.length) * 0.01) * porcnt);
-                cumulo += (((((asignatura_current + 1) * 100) / planEstudio.length) * 0.01) * porcnt);
+                let cum = (((((asignatura_current + 1) * 100) / planEstudio.length) * 0.01) * porcnt);
+                cum = ((progresoPlanEstudio + cum) <= 100) ? cum : 0;
+                progresoPlanEstudio += cum;
+                cumulo += cum;
             };
             progresoPlanEstudio -= cumulo;
-            progresoPlanEstudio += porcnt;
+            progresoPlanEstudio += ((progresoPlanEstudio + porcnt) <= 100) ? porcnt : (100 - progresoPlanEstudio);
+            // progresoPlanEstudio += porcnt;
             cumulo = 0;
 
             async function controlRegistroAsignatura(asignatura_current) {
@@ -518,7 +536,7 @@ app.route("/cargaPlanEstudioBD", verificarAccesoPeticionJefe).post(async functio
                 objectResponse.existe_asigatura = (await executeQuery(
                     `SELECT cod_asignatura_pk FROM tbl_asignatura WHERE (tbl_asignatura.cod_asignatura_pk = ?)`, [asignatura_current.COD_ASIGNATURA]));
                 if (objectResponse.existe_asigatura.length) {
-                    console.log(asignatura_current.ASIGNATURA + 'ya esta registrada, aqui se actualizaria...');
+                    // console.log(asignatura_current.ASIGNATURA + 'ya esta registrada, aqui se actualizaria...');
                     // await executeQuery(`UPDATE tbl_asignatura SET cod_area_pk = ?, txt_nombre_asignatura = ? 
                     //     WHERE (tbl_asignatura.cod_asignatura_pk = ?) VALUES (?,?,?);`, [asignatura_current.COD_ASIGNATURA, objectResponse.cod_area, asignatura_current.ASIGNATURA]);
                 } else {
@@ -526,7 +544,7 @@ app.route("/cargaPlanEstudioBD", verificarAccesoPeticionJefe).post(async functio
                         await executeQuery(`INSERT INTO tbl_asignatura(cod_asignatura_pk, cod_area_pk, txt_nombre_asignatura) VALUES (?,?,?);`, [asignatura_current.COD_ASIGNATURA, objectResponse.cod_area, asignatura_current.ASIGNATURA]);
 
                     } catch (err) {}
-                    console.log(asignatura_current.ASIGNATURA + ' registrada exitosamente...');
+                    // console.log(asignatura_current.ASIGNATURA + ' registrada exitosamente...');
 
                     objectResponse.resultAfterInsertArea = (await executeQuery(
                         `SELECT cod_asignatura_pk FROM tbl_asignatura WHERE (tbl_asignatura.cod_asignatura_pk = ?)`, [asignatura_current.COD_ASIGNATURA]));;
@@ -543,19 +561,22 @@ app.route("/cargaPlanEstudioBD", verificarAccesoPeticionJefe).post(async functio
                     and (tbl_asignatura_x_plan_estudio.cod_plan_estudio_fk = ?)`, [asignatura_current.COD_ASIGNATURA, objectResponse.cod_plan_estudio]));
 
                 if (objectResponse.existe_asigatura_x_plan_estudio.length) {
-                    console.log('----Su asignatura por plan estudio, ya existe, aqui se actualizaria.');
+                    // console.log('----Su asignatura por plan estudio, ya existe, aqui se actualizaria.');
 
                     objectResponse.cod_asignatura_x_plan_estudio = objectResponse.existe_asigatura_x_plan_estudio[0].cod_asignatura_x_plan_estudio_pk;
+
+                    await executeQuery(`UPDATE tbl_asignatura_x_plan_estudio SET bol_pertenece_carrera = ?, bol_asignatura_optativa = ? 
+                WHERE tbl_asignatura_x_plan_estudio.cod_asignatura_x_plan_estudio_pk = ?`, [asignatura_current.PERTENECE, asignatura_current.OPTATIVA, objectResponse.cod_asignatura_x_plan_estudio]);
                     //Si existe la actualiza y guarda el id
                     // await executeQuery(`UPDATE tbl_asignatura_x_plan_estudio SET bol_pertenece = ? 
                     //     WHERE (tbl_asignatura_x_plan_estudio.cod_asignatura_plan_estudio_pk = ?) VALUES (?,?);`, [asignatura_current.PERTENECE, objectResponse.cod_asignatura_x_plan_estudio]);
                 } else {
                     try {
-                        await executeQuery(`INSERT INTO tbl_asignatura_x_plan_estudio (cod_plan_estudio_fk, cod_asignatura_fk, bol_pertenece_carrera) 
-                        VALUES (?, ?, ?);`, [objectResponse.cod_plan_estudio, asignatura_current.COD_ASIGNATURA, asignatura_current.PERTENECE]);
+                        await executeQuery(`INSERT INTO tbl_asignatura_x_plan_estudio (cod_plan_estudio_fk, cod_asignatura_fk, bol_pertenece_carrera, bol_asignatura_optativa) 
+                        VALUES (?, ?, ?, ?);`, [objectResponse.cod_plan_estudio, asignatura_current.COD_ASIGNATURA, asignatura_current.PERTENECE, asignatura_current.OPTATIVA]);
 
                     } catch (err) {};
-                    console.log('----Su asignatura por plan estudio, registrada exitosamente.');
+                    // console.log('----Su asignatura por plan estudio, registrada exitosamente.');
                     objectResponse.resultAfterInsert = (await executeQuery(
                         `SELECT cod_asignatura_x_plan_estudio_pk FROM tbl_asignatura_x_plan_estudio 
                             WHERE (tbl_asignatura_x_plan_estudio.cod_asignatura_fk = ?) and (tbl_asignatura_x_plan_estudio.cod_plan_estudio_fk = ?)`, [asignatura_current.COD_ASIGNATURA, objectResponse.cod_plan_estudio]));
@@ -578,9 +599,9 @@ app.route("/cargaPlanEstudioBD", verificarAccesoPeticionJefe).post(async functio
 
                 //Extraer "cod_asignatura_por_plan_estudio" de la asignatura requisito
                 objectResponse.existe_cod_asig_x_plan_requisito = (await executeQuery(
-                    `SELECT cod_asignatura_x_plan_estudio_pk FROM tbl_asignatura_x_plan_estudio 
+                        `SELECT cod_asignatura_x_plan_estudio_pk FROM tbl_asignatura_x_plan_estudio 
                         WHERE (tbl_asignatura_x_plan_estudio.cod_asignatura_fk = ?) and (tbl_asignatura_x_plan_estudio.cod_plan_estudio_fk = ?)`, [cod_asig_req, objectResponse.cod_plan_estudio]))
-                progresoPlanEstudio += 10;
+                    // progresoPlanEstudio += 10;
 
                 objectResponse.cod_asig_x_plan_requisito = "";
                 if (objectResponse.existe_cod_asig_x_plan_requisito.length) {
@@ -599,19 +620,19 @@ app.route("/cargaPlanEstudioBD", verificarAccesoPeticionJefe).post(async functio
                             await executeQuery(`INSERT INTO tbl_requisito_x_asignatura 
                                 (cod_asignatura_x_plan_estudio_ck, cod_asignatura_x_plan_estudio_requisito_ck) VALUES (?, ?);`, [objectResponse.cod_asignatura_x_plan_estudio, objectResponse.cod_asig_x_plan_requisito]);
                         } catch (err) {}
-                        console.log('No existia el requisito ' + cod_asig_req + ' para ' + cod_asignatura + ', se creo con exito.')
+                        // console.log('No existia el requisito ' + cod_asig_req + ' para ' + cod_asignatura + ', se creo con exito.')
                     } else {
-                        console.log('--Ya existia el requisito ' + cod_asig_req + ' para ' + cod_asignatura + '.')
+                        // console.log('--Ya existia el requisito ' + cod_asig_req + ' para ' + cod_asignatura + '.')
                     }
                 }
-                progresoPlanEstudio += 10;
+                // progresoPlanEstudio += 10;
 
                 //verificar si ya se regisro como requisito de la asignatura
                 objectResponse.existe_req_asig = (await executeQuery(
                     `SELECT cod_asignatura_x_plan_estudio_ck FROM tbl_requisito_x_asignatura 
                         WHERE (tbl_requisito_x_asignatura.cod_asignatura_x_plan_estudio_ck = ?) 
                         and (tbl_requisito_x_asignatura.cod_asignatura_x_plan_estudio_requisito_ck = ?)`, [objectResponse.cod_asignatura_x_plan_estudio, objectResponse.cod_asig_x_plan_requisito]));
-                progresoPlanEstudio += 5;
+                // progresoPlanEstudio += 5;
 
                 //Si no existe la dependecia la crea
                 if (!objectResponse.existe_req_asig.length) {
@@ -620,17 +641,17 @@ app.route("/cargaPlanEstudioBD", verificarAccesoPeticionJefe).post(async functio
                         objectResponse.cod_asig_x_plan_requisito
                     ]);
                 }
-                progresoPlanEstudio += 5;
+                // progresoPlanEstudio += 5;
             }
 
             async function controlRegistroAreas(txt_nombre_area) {
                 objectResponse.existe_area = await executeQuery(
                     `SELECT cod_area_pk FROM tbl_areas WHERE (tbl_areas.txt_nombre_area = ?)`, [txt_nombre_area]);
                 if (objectResponse.existe_area.length) {
-                    console.log('AREA ' + txt_nombre_area + ' ya existe...')
+                    // console.log('AREA ' + txt_nombre_area + ' ya existe...')
                     objectResponse.cod_area = await objectResponse.existe_area[0].cod_area_pk;
                 } else {
-                    console.log('  AREA ' + txt_nombre_area + ' no existe, creando...')
+                    // console.log('  AREA ' + txt_nombre_area + ' no existe, creando...')
                     await executeQuery(`INSERT INTO tbl_areas(txt_nombre_area) VALUES (?);`, [txt_nombre_area]);
                     objectResponse.resultAfterInsertArea = (await executeQuery(
                         `SELECT cod_area_pk FROM tbl_areas WHERE (tbl_areas.txt_nombre_area = ?)`, [txt_nombre_area]));
@@ -669,7 +690,7 @@ app.route("/cargaPlanEstudioBD", verificarAccesoPeticionJefe).post(async functio
                 // console.log('Item del for: ' + JSON.stringify(planEstudio[q]));
                 // console.log('Asignatura: ' + planEstudio[q].COD_ASIGNATURAS_REQUISITO);
                 requisitos[asignatura] = planEstudio[q].COD_ASIGNATURAS_REQUISITO;
-                console.log('Requisitos: ' + JSON.stringify(requisitos));
+                // console.log('Requisitos: ' + JSON.stringify(requisitos));
                 // console.log('Asignatura2: ' + asignatura);
                 codsAsignaturasSinOrdenar.push(planEstudio[q].COD_ASIGNATURA);
             };
@@ -678,8 +699,8 @@ app.route("/cargaPlanEstudioBD", verificarAccesoPeticionJefe).post(async functio
                 for (re = 0; re < planEstudio[q].COD_ASIGNATURAS_REQUISITO.length; re++) {
                     req = planEstudio[q].COD_ASIGNATURAS_REQUISITO[re];
                     asignatura = planEstudio[q].COD_ASIGNATURA;
-                    console.log('requisitos1: ' + requisitos[asignatura]);
-                    console.log('requisitos2: ' + requisitos[req]);
+                    // console.log('requisitos1: ' + requisitos[asignatura]);
+                    // console.log('requisitos2: ' + requisitos[req]);
                     if (!codsAsignaturasSinOrdenar.includes(planEstudio[q].COD_ASIGNATURAS_REQUISITO[re])) {
                         info = 'Para la asignatura ' + planEstudio[q].COD_ASIGNATURA +
                             ' no existe el requisito ' + planEstudio[q].COD_ASIGNATURAS_REQUISITO[re] + ' en el plan de estudio.';
@@ -742,16 +763,16 @@ app.route("/cargaPlanEstudioBD", verificarAccesoPeticionJefe).post(async functio
             return planOrdenado;
         }
 
-
         const control = await verificarConcordancia(planEstudio);
         if (control[0]) {
             planEstudio = await ordenarPlan(planEstudio, control[1]);
-            console.log('/////////////////////COMIENZA LA FUNCION CN////////////////////////');
+            progresoPlanEstudio += ((progresoPlanEstudio + 10) <= 100) ? 10 : 0;
+            // console.log('/////////////////////COMIENZA LA FUNCION CN////////////////////////');
             var objectResponse = {};
             await registrarAsignarutasEnDB(planEstudio);
             progresoPlanEstudio = 0;
             response.send(`Plan de estudio subido a la Base de Datos con exíto!`);
-            console.log('//////////////////////TERMINO LA FUNCION CN////////////////////////');
+            // console.log('//////////////////////TERMINO LA FUNCION CN////////////////////////');
         } else {
             response.send('Error de concordancia: \n' + control[2]);
         }
@@ -790,6 +811,7 @@ app.route("/cargaAcademicaBD", verificarAccesoPeticionJefe).post(async function(
             });
         });
     } catch (e) {
+        console.log(e);
         response.send("Se produjo un error, intentelo de nuevo: " + e);
     }
 
@@ -1294,7 +1316,6 @@ async function obtenerForma03() {
 
         return true;
     } catch (e) {
-        console.log(e);
         return false;
     }
 
@@ -1356,7 +1377,6 @@ async function extraerforma() {
 
 function guardarForma03(forma) {
 
-    console.log(forma);
     var sql = `call insertar_forma(?,?,?,?,?)`;
     //VERIFICA SI HAY PERIODO Y AÑO
     var periodo = forma.periodo != "" ? forma.periodo : 0;
@@ -1440,7 +1460,7 @@ app.put("/updateParametroPeriodo", verificarAccesoPeticion, function(peticion, r
 
 //PETICIÓN PARA INICIAR EL PROCESO DE PREDICCIÓN
 app.get("/prediccion_proceso", verificarAccesoPeticion, async function(request, response) {
-    enPrediccion = true;
+    enPrediccion = 1;
     await predecirAprobacion();
     console.log("Predicción Iniciada");
     response.send("Predicción Iniciada");
@@ -1448,31 +1468,90 @@ app.get("/prediccion_proceso", verificarAccesoPeticion, async function(request, 
 });
 
 
-//PETICIÓN PARA OBTENER RESULTADOS DE PREDICCIÓN
+//PETICIÓN PARA OBTENER RESULTADOS DE PREDICCIÓN 
 app.get("/prediccion_resultados", verificarAccesoPeticion, function(peticion, respuesta) {
-
     var num_periodos_inactivo = peticion.query.num_periodos_inactivo;
-    var sql = `
-    SELECT d.cod_asignatura_pk cod_asignatura, d.txt_nombre_asignatura asignatura, COUNT(a.num_cuenta_ck) num_estudiantes FROM tbl_asignatura_a_cursar a INNER JOIN tbl_asignatura_x_plan_estudio b
-    ON a.cod_asignatura_x_plan_estudio_ck = b.cod_asignatura_x_plan_estudio_pk
-    INNER JOIN tbl_estudiante c ON a.num_cuenta_ck = c.num_cuenta_pk
-    INNER JOIN tbl_asignatura d ON b.cod_asignatura_fk = d.cod_asignatura_pk
-    WHERE c.num_periodos_inactivo <= ?  AND (a.num_anio_ck, a.num_periodo_ck) IN (SELECT * from vw_ultimo_periodo)
-    GROUP BY a.cod_asignatura_x_plan_estudio_ck ;`;
-    var data = [];
-    conexion.query(sql, [num_periodos_inactivo])
+    var periodo = peticion.query.periodo;
+    var predecida = peticion.query.predecida;
+    var carrera = peticion.query.carrera;
+
+    if (predecida == 0 || predecida == 1) {
+        //EL VALOR DE VARIABLE ES 0 O 1, SE REALIZA EL FILTRO POR ELLA
+        var sql = consultas.obtenerAsigACursarPredecidas();
+        var data = [];
+        conexion.query(sql, [num_periodos_inactivo, predecida, periodo, carrera])
+            .on("result", function(resultado) {
+                data.push(resultado);
+            })
+            .on("end", function() {
+                respuesta.send({ data: data });
+            });
+    } else if (predecida == 2) {
+        //DEBE MOSTRAR TODAS LAS ASIGNATURAS, PREDECIDAS Y NO PREDECIDAS QUE HAN SIDO EVALUADAS, NO DEBE LLEVAR ESA CLAUSULA
+        var sql = consultas.obtenerAsigACursar();
+        var data = [];
+        conexion.query(sql, [num_periodos_inactivo, periodo, carrera])
+            .on("result", function(resultado) {
+                data.push(resultado);
+            })
+            .on("end", function() {
+                respuesta.send({ data: data });
+            });
+    }
+});
+
+
+//PETICION PARA OBTENER LOS PERIDOOS QUE HAN SIDO PREDECIDOS
+app.get("/obtenerPeriodosPredecidos", verificarAccesoPeticion, function(peticion, respuesta) {
+    var sql = consultas.obtenerPeriodosPredecidos();
+    var periodosPredecidos = [];
+    conexion.query(sql)
         .on("result", function(resultado) {
-            data.push(resultado);
+            periodosPredecidos.push(resultado);
         })
         .on("end", function() {
-            respuesta.send({ data: data });
+            respuesta.send({ periodosPredecidos: periodosPredecidos });
         });
 });
+
+//PETICION PARA OBTENER EL ULTIMO PERIDOO QUE HA SIDO PREDECIDO
+app.get("/obtenerUltimoPeriodoPredecido", verificarAccesoPeticion, function(peticion, respuesta) {
+    var sql = consultas.obtenerUltimoPeriodoPredecido();
+    var ultimoPeriodoPredecido = [];
+    conexion.query(sql)
+        .on("result", function(resultado) {
+            ultimoPeriodoPredecido.push(resultado);
+        })
+        .on("end", function() {
+            respuesta.send({ ultimoPeriodoPredecido: ultimoPeriodoPredecido });
+        });
+});
+
+//PETICION PARA OBTENER CARRERAS PREDECIDAS
+app.get("/obtenerCarrerasPredecidas", verificarAccesoPeticion, function(peticion, respuesta) {
+    var sql = consultas.obtenerCarrerasPredecidas();
+    var carrerasPredecidas = [];
+    conexion.query(sql)
+        .on("result", function(resultado) {
+            carrerasPredecidas.push(resultado);
+        })
+        .on("end", function() {
+            respuesta.send({ "carreras": carrerasPredecidas });
+        });
+});
+
+
 
 //OBTIENE EL PROGRESO DEL PROCESO DE PREDICCIÓN Y CÁLCULO DE ASIGNATURAS POR CURSAR
 app.get("/getEnPrediccion", verificarAccesoPeticion, async function(request, response) {
 
-    response.send(enPrediccion);
+    response.send({ progreso: enPrediccion });
+
+});
+
+app.get("/resetEnPrediccion", verificarAccesoPeticion, async function(request, response) {
+
+    enPrediccion = 0;
 
 });
 
@@ -1669,7 +1748,7 @@ async function escarbar() {
 
             //VALIDA SI LA CUENTA NO HA PASADO POR ES PROCESO DE EXTRACCIÓN
             if (cuentas[j].finalizado == false) {
-                await console.log(cuentas[j].cuenta);
+                await console.log("Extrayendo de: " + cuentas[j].cuenta);
                 //COLOCA EL NÚMERO DE CUENTA EN EL FORMULARIO DE LA PÁGINA E INGRESA AL HISTORIAL CON SELENIUM-WEBDRIVER
                 var verificador = await irHistorial(cuentas[j].cuenta);
                 //SI EL NÚMERO DE CUENTA FUE VALIDO
@@ -1695,15 +1774,17 @@ async function escarbar() {
                     try {
                         await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[1]/table/tbody/tr/td[3]/a[@id='MainContent_LinkButton11']"))
                             .click();
+
+                        await driver.findElement(By.id("MainContent_LinkButton1")).getText();
+
+                        // await driver.wait(until.titleIs('13261vgadafkjhf'), 50).catch(function(err) {});
+
                     } catch (error) {}
 
                     //ESTABLECE LA FINALIZACIÓN DEL PROCESO DE EXTRACCIÓN EN LA CUENTA
                     cuentas[j].finalizado = await true;
                     //REESCRIBE EN EL ARCHIVO DE RESPALDO EL ARRAY DE JSON DE CUENTAS ACTUALIZADO
                     await escribirRespaldo(cuentas);
-
-
-
 
 
                     //SI ES LA ÚLTIMA CUENTA EL ESTADO PASA A FINALIZADO
@@ -1723,6 +1804,9 @@ async function escarbar() {
                     if (cuentasInvalidas == "") {
                         if (existeArchivo("./archivos/cuentas_invalidas.txt")) {
                             cuentasInvalidas = await fs.readFileSync('./archivos/cuentas_invalidas.txt', 'utf8');
+                            if ((cuentasInvalidas.trim()).length != 0) {
+                                cuentasInvalidas += await ",";
+                            }
                         }
                         cuentasInvalidas += await cuentas[j].cuenta;
                     } else {
@@ -1730,6 +1814,7 @@ async function escarbar() {
                     }
                     await fs.writeFileSync('./archivos/cuentas_invalidas.txt', cuentasInvalidas, { mode: 0o755 });
                     //PREPARA LA NAVEGACIÓN PARA LA CONTINUAR CON LA SIGUIENTE CUENTA
+
                     await driver.findElement(By.id("MainContent_TextBox1")).clear();
                     await driver.findElement(By.id("MainContent_LinkButton4")).click();
                 }
@@ -1741,6 +1826,7 @@ async function escarbar() {
             await guardarEstado();
             error = await "Error al extraer datos, reanude para reintentar";
             await console.error(e);
+            console.log("Se pausó la extracción")
 
         }
     }
@@ -1752,8 +1838,12 @@ async function escarbar() {
 //ENTRA AL HISTORIAL ESTANDO LOGUEADO CON SELENIUM-WEBDRIVER
 async function irHistorial(nrocuenta) {
     try {
+        await driver.wait(until.elementIsVisible(driver.findElement(By.id("MainContent_LinkButton1"))), 10000);
+
         //DIRIGE LA NAVEGACIÓN HACIA EL FORMULARIO DE CUENTAS (SELENIUM-WEBDRIVER)
-        await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/table[@class='style1']/tbody/tr[1]/td[1]/a[@id='MainContent_LinkButton1']")).click();
+        await driver.findElement(By.id("MainContent_LinkButton1")).click()
+            // await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/table[@class='style1']/tbody/tr[1]/td[1]/a[@id='MainContent_LinkButton1']")).click();
+
         //INTRODUCE EL NÚMERO DE CUENTA EN EL CAMPO DEL FORMULARIO
         await driver.findElement(By.id("MainContent_TextBox1")).sendKeys(nrocuenta);
         //CLICKEA EL BOTÓN DE ENTRADA AL FORMULARIO
@@ -1767,7 +1857,9 @@ async function irHistorial(nrocuenta) {
     try {
         await driver.findElement(By.xpath("/html/body/form[@id='ctl01']/div[@class='page']/div[@class='header']/div[@class='main']/div[@id='MainContent_Panel1']/div[@class='rel']/div[@class='modal-inner-wrapper rounded-corners']/div[@class='content rounded-corners']/div[@class='body']/table[2]/tbody/tr[2]/td[@class='style12']/span[@id='MainContent_Label17']"))
         return false;
-    } catch (e) { return true }
+    } catch (e) {
+        return true
+    }
 }
 
 //EXTRAE LA INFORMACIÓN GENERAL DEL ESTUDIANTE ESTANDO EN SU HISTORIAL (CON SELENIUM-WEBDRIVER)
@@ -1857,9 +1949,7 @@ function guardarHistorial() {
 async function escribirRespaldo(cuentas) {
     try {
         await fs.writeFileSync('./archivos/respaldo.txt', JSON.stringify(cuentas), { mode: 0o755 });
-    } catch (err) {
-        console.error(err);
-    }
+    } catch (err) {}
     return true;
 }
 
@@ -2038,14 +2128,13 @@ async function inicializarEstado() {
 function predecirAprobacion() {
 
     var query = 'call reset_prediccion()';
-
+    enPrediccion = 5;
     conexion.query(query).on("end", function(err, result) {
         if (err) {
             console.log(err);
             throw err;
         }
-        console.log("Preparando predicción");
-        console.log("Obteniendo asignaturas a tratar")
+        enPrediccion = 15;
         query = 'SELECT * FROM vw_asignaturas_indice';
         var asignaturaIndice = [];
         conexion.query(query)
@@ -2053,9 +2142,7 @@ function predecirAprobacion() {
                 asignaturaIndice.push(JSON.parse(JSON.stringify(resultado)));
             })
             .on("end", function() {
-                console.log("Asignaturas obtenidas");
-                console.log("==========================");
-                console.log(asignaturaIndice[1].cod_asignatura_x_plan_estudio_pk);
+                enPrediccion = 45;
                 query = 'select predecir_aprobacion(?,?) from dual';
                 for (i = 0; i < asignaturaIndice.length; i++) {
                     conexion.query(query, [asignaturaIndice[i].cod_asignatura_x_plan_estudio_pk, asignaturaIndice[i].indice_aprobacion], function(err, result) {
@@ -2063,31 +2150,20 @@ function predecirAprobacion() {
                             console.log(err);
                             throw err;
                         }
+                        if (i == Math.round(asignaturaIndice.length / 4) || i == Math.round(asignaturaIndice.length / 2)) {
+                            enPrediccion += 10
+                        }
                     });
                     if (i == (asignaturaIndice.length - 1)) {
-                        console.log("Predicción finalizada");
-                        calculoAsignaturasPredecidas();
+                        enPrediccion = 70;
+                        calculoEstudianteEgresadoYPeriodosInactivo();
                     }
                 }
             });
     });
 }
 
-function calculoAsignaturasPredecidas() {
-
-    query = 'call calcular_asignaturas_a_cursar()'
-    conexion.query(query)
-        .on("end", function(err, result) {
-            if (err) {
-                console.log(err);
-                throw err;
-            }
-            calculoPeriodosInactivo();
-            console.log("Cálculo finalizado")
-        })
-}
-
-function calculoPeriodosInactivo() {
+function calculoEstudianteEgresadoYPeriodosInactivo() {
     var query = 'SELECT * from vw_estudiantes_prediccion';
 
     var estudiantes_cuentas = [];
@@ -2096,11 +2172,9 @@ function calculoPeriodosInactivo() {
             estudiantes_cuentas.push(JSON.parse(JSON.stringify(resultado)));
         })
         .on("end", function() {
-            // console.log(estudiantes_cuentas);
-            console.log("==========================")
-            console.log(estudiantes_cuentas[1].num_cuenta_pk)
-
+            enPrediccion = 75;
             query = 'select num_periodos_inactivo(?) from dual';
+            query2 = 'select verificacion_egresado(?) from dual';
             for (i = 0; i < estudiantes_cuentas.length; i++) {
                 conexion.query(
                     query, [estudiantes_cuentas[i].num_cuenta_pk],
@@ -2111,11 +2185,41 @@ function calculoPeriodosInactivo() {
                         }
                     }
                 );
+                conexion.query(
+                    query2, [estudiantes_cuentas[i].num_cuenta_pk],
+                    function(err, result) {
+                        if (err) {
+                            console.log(err);
+                            throw err;
+                        }
+                    }
+                );
+
+                if (i == Math.round(estudiantes_cuentas.length / 4) || i == Math.round(estudiantes_cuentas.length / 2)) {
+                    enPrediccion += 7
+                }
             }
-            enPrediccion = false;
-            console.log("Fin de cálculo de periodos inactivo");
+            enPrediccion = 90;
+            calculoAsignaturasPredecidas();
         });
 }
+
+
+function calculoAsignaturasPredecidas() {
+
+    query = 'call calcular_asignaturas_a_cursar()'
+    conexion.query(query)
+        .on("end", function(err, result) {
+            if (err) {
+                console.log(err);
+                throw err;
+            }
+            enPrediccion = 100;
+            console.log("Predicción finalizada");
+        })
+}
+
+
 
 
 app.listen(3333);

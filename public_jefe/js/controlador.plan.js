@@ -1,6 +1,6 @@
 var jsons;
-var formato = ['AREA','ASIGNATURA','COD_ASIGNATURA','COD_ASIGNATURAS_REQUISITO','PERTENECE'];
-var correcto = [false,false,false,true,false];
+var formato = ['AREA','ASIGNATURA','COD_ASIGNATURA','COD_ASIGNATURAS_REQUISITO','PERTENECE', 'OPTATIVA'];
+var correcto = [false,false,false,true,false,false];
 var camposCompletos = true;
 var tamanioCorrecto = true;
 var listo = true;
@@ -69,7 +69,9 @@ ExcelExport= function (event) {
             asignarCarrera();
 
             llenarTabla();
-            $("#btn-iniciar").attr("disabled", false);
+            // $("#btn-iniciar").attr("disabled", false);
+            $("#ttl-optativas").attr("disabled", false);
+            $("#ttl-asignaturas").attr("disabled", false);
 
             jsons.forEach((e) => {
                 var str = e.COD_ASIGNATURAS_REQUISITO;
@@ -87,6 +89,7 @@ ExcelExport= function (event) {
 
             jsons.forEach((e) => {
                 if (e.PERTENECE.toLowerCase() === 'si') e.PERTENECE = 1; else e.PERTENECE = 0;
+                if (e.OPTATIVA.toLowerCase() === 'si') e.OPTATIVA = 1; else e.OPTATIVA = 0;
                 if (e.COD_ASIGNATURAS_REQUISITO.length) {
                     var indice = e.COD_ASIGNATURAS_REQUISITO.indexOf('ninguno');
                     while (indice !== -1) {
@@ -235,7 +238,7 @@ $('#btn-iniciar').click(function(){
     jQuery.ajax({
         url: '/cargaPlanEstudioBD',
         // data: data,
-        data: 'planEstudio=' + JSON.stringify(jsons),
+        data: 'planEstudio=' + JSON.stringify(jsons) + '&asignaturasRequeridas=' + $("#ttl-asignaturas").val() + '&optativasRequeridas=' + $("#ttl-optativas").val(),
         cache: false,
         // contentType: false,
         processData: false,
@@ -265,7 +268,7 @@ var actualizarProgreso = function() {
         contentType: "application/json",
         dataType:"json", //Tipo de dato de la respuesta del servidor
         success: function(response){//Funcion que se ejecutara cuando el servidor envie la respuesta
-            if (progress < response.progresoPlan) progress = response.progresoPlan;
+            if (progress < response.progresoPlan) progress = Math.floor(response.progresoPlan);
             if (progress >= 100) detenerProgreso();
             $('.progress-bar').css( "width", `${progress}%` );
             $('.progress-bar').html(`${progress}%`);
@@ -318,10 +321,31 @@ $("#slc-carreras").change(function() {
         $("#file").val('');
         $("#tbl").html('');
         $("#file").attr("disabled", true);
+        $("#ttl-asignaturas").val('');
+        $("#ttl-asignaturas").attr("disabled", true);
+        $("#ttl-optativas").val('');
+        $("#ttl-optativas").attr("disabled", true);
         $("#btn-iniciar").attr("disabled", true);
         reiniciarVariables();
     }
 });
+
+$("#ttl-asignaturas").change(function() {
+    var asignaturasRequeridas = $("#ttl-asignaturas").val();
+    if (asignaturasRequeridas !== '' && (asignaturasRequeridas < 1 || asignaturasRequeridas > 99)) $("#ttl-asignaturas").val('');
+    validarNumeros();
+});
+
+$("#ttl-optativas").change(function() {
+    var optativasRequeridas = $("#ttl-optativas").val();
+    if (optativasRequeridas !== '' && (optativasRequeridas < 1 || optativasRequeridas > 99)) $("#ttl-optativas").val('');
+    validarNumeros();
+});
+
+function validarNumeros() {
+    var bol = ($("#ttl-asignaturas").val() !== '' && $("#ttl-optativas").val() !== '') ? false : true;
+    $("#btn-iniciar").attr("disabled", bol);
+}
 
 function validarMensaje() {
     if ($('#txt-carrera').val() !== '') {

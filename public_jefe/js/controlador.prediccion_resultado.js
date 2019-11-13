@@ -25,43 +25,128 @@
 // }
 
 var tablePrediccion;
+var ultimoPeriodoPredecidoG;
 
-$(document).ready(function(){
-    $("#btn-buscar").on("click", function(){
+$(document).ready(function() {
+    $("#btn-buscar").on("click", function() {
         reloadTablePrediccion();
     })
+    obtenerUltimoPeriodoPredecido().done(function() {
+        getPeriodosPredecidos().done(function() {
+            getCarrerasPredecidas().done(function() {
+                loadTablePrediccion();
+            })
+        });
+    });
 
-    loadTablePrediccion();
+
 });
 
-function getFilters(){
+function getFilters() {
     return {
         periodos_inactivos: $("#periodos_inactivos").val()
     }
 }
 
-function reloadTablePrediccion(){
-    periodos_inactivos= $("#periodos_inactivos").val();
-    url = "/prediccion_resultados?num_periodos_inactivo=" + periodos_inactivos;
+function reloadTablePrediccion() {
+    periodos_inactivos = $("#periodos_inactivos").val();
+    periodo = $("#periodo").val();
+    predecida = $("#predecida").val();
+    carrera = $("#carrera").val();
+
+
+    if (periodo == null) {
+        periodo = ultimoPeriodoPredecidoG;
+    }
+
+    if (predecida == null)
+        predecida = 1;
+
+    url = "/prediccion_resultados?num_periodos_inactivo=" + periodos_inactivos + '&periodo=' + periodo + '&predecida=' + predecida + '&carrera=' + carrera;
     tablePrediccion.clear().draw();
-	tablePrediccion.ajax.url( url ).load();
+    tablePrediccion.ajax.url(url).load();
 }
 
-function loadTablePrediccion(){
+function loadTablePrediccion() {
+    periodos_inactivos = $("#periodos_inactivos").val();
+    periodo = $("#periodo").val();
+    predecida = $("#predecida").val();
+    carrera = $("#carrera").val();
+
+    if (periodo == null) {
+        periodo = ultimoPeriodoPredecidoG;
+    }
+
+    if (predecida == null)
+        predecida = 1;
 
     tablePrediccion = $("#tablePrediccion").DataTable({
-        ajax : {
-			scriptCharset: 'utf-8',
-			url: "/prediccion_resultados?num_periodos_inactivo=3",
-			dataSrc: 'data',
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8'
-		},
-        columns: [
-            { data: "cod_asignatura" },
-            { data: "asignatura" },
-            { data: "num_estudiantes" }
-        ]
-    })
+            ajax: {
+                scriptCharset: 'utf-8',
+                url: "/prediccion_resultados?num_periodos_inactivo=" + periodos_inactivos + '&periodo=' + periodo + '&predecida=' + predecida + '&carrera=' + carrera,
+                dataSrc: 'data',
+                dataType: 'json',
+                contentType: 'application/json; charset=utf-8'
+            },
+            columns: [
+                { data: "cod_asignatura" },
+                { data: "asignatura" },
+                { data: "num_estudiantes" }
+            ],
+            pageLength: 50,
+            responsive: true,
+            autoWidth: false
+        })
+        // reloadTablePrediccion();
 
+}
+
+function getPeriodosPredecidos() {
+    return $.ajax({
+        url: "/obtenerPeriodosPredecidos",
+        method: "GET",
+        dataType: "json",
+        success: function(res) {
+            console.log(res);
+            for (var i = 0; i < res.periodosPredecidos.length; i++) {
+                $("#periodo").append(`<option value="${res.periodosPredecidos[i].periodo}">${res.periodosPredecidos[i].periodo}</option>`);
+            }
+        },
+        error: function(error) {
+            console.error(error);
+        }
+    });
+}
+
+
+function obtenerUltimoPeriodoPredecido() {
+    return $.ajax({
+        url: "/obtenerUltimoPeriodoPredecido",
+        method: "GET",
+        dataType: "json",
+        success: function(res) {
+            console.log(res);
+            ultimoPeriodoPredecidoG = res.ultimoPeriodoPredecido[0].periodo;
+        },
+        error: function(error) {
+            console.error(error);
+        }
+    });
+}
+
+function getCarrerasPredecidas() {
+    return $.ajax({
+        url: "/obtenerCarrerasPredecidas",
+        method: "GET",
+        dataType: "json",
+        success: function(resp) {
+
+            for (var i = 0; i < resp.carreras.length; i++) {
+                $("#carrera").append(`<option value="${resp.carreras[i].cod_carrera}">${resp.carreras[i].nombre_carrera}</option>`);
+            }
+        },
+        error: function(error) {
+            console.error(error);
+        }
+    });
 }
