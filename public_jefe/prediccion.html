@@ -2,7 +2,7 @@
 <html>
 
 <head>
-    <title>Estadísticas</title>
+    <title>Predicción</title>
     <link rel="shorcut icon" href="img/logo-carrera-ingenieria-en-sistemas.png">
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -36,6 +36,7 @@
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 <li><button type="button" class="btn btn-link navbar-btn" data-toggle="modal" data-target="#myModal" style="text-decoration: none;">Acerca de</button></li>
+                <li><button type="button" class="btn btn-link navbar-btn" data-toggle="modal" data-target="#modalCustom" style="text-decoration: none;">Mantenimiento parámetros</button></li>
                 <li><a href="/logout"><span class="glyphicon glyphicon-log-in"></span> Cerrar Sesión</a></li>
             </ul>
         </div>
@@ -105,6 +106,99 @@
                 </div>
             </div>
             <!-- MODAL -->
+            <!-- MODAL MANTENIMIENTO PARAMETROS-->
+            <div class="modal fade" id="modalCustom" role="dialog">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h4 class="modal-title">Mantenimiento de parámetros para la predicción</h4>
+                        </div>
+                        <div class="modal-body">
+                            <p><strong>AutoScraping</strong></p>
+                            <p>Sección para darle mantenimiento a los dos parámetros utilizados para el proceso de predicción de la cantidad de estudiantes que podrían matrícular cualquiera de las asignaturas de la carrera <strong>Ingeniería en Sistemas</strong>                                el siguiente período académico en este Centro Universitario.</p>
+
+                            <hr>
+                            <center>
+                                <h5><strong>Valores Actuales</strong></h5>
+                            </center>
+                            <br>
+                            <table class="table" id="tabla-mantenimiento">
+                                <thead>
+                                    <th>Carrera a realizar predicción</th>
+                                    <th>Número de periodos para la predicción</th>
+                                </thead>
+                                <tr>
+                                    <td id=""><input type="text" class="form-control" id="name-carrera-bd" disabled="disabled"></td>
+                                    <td id=""><input type="text" class="form-control" id="num-periodo-bd" disabled="disabled"></td>
+                                </tr>
+                            </table>
+                            <hr>
+                            <div class="row" id="mantenimiento-parametros">
+                                <div class="col-md-6 col-lg-6 col-sm-6">
+                                    <center><button id="btn-editar-carrera" class="btn btn-success btn-md">Modificar carrera a predecir</button></center>
+                                    <center><button id="btn-cancelar-carrera" class="btn btn-danger btn-md" style="display: none;">Cancelar Cambio de carrera</button></center>
+                                </div>
+                                <div class="col-md-6 col-lg-6 col-sm-6">
+                                    <center><button id="btn-editar-num-periodos" class="btn btn-success btn-md">Modificar números de períodos a predecir</button></center>
+                                    <center><button id="btn-cancelar-periodo" class="btn btn-danger btn-md" style="display: none;">Cancelar cambio de número de periodos</button></center>
+                                </div>
+                            </div>
+                            <hr>
+
+                            <div class="row" id="mantenimiento-parametros">
+                                <div class="col-md-6 col-lg-6" style="text-align: center; display: none;" id="div-carrera">
+                                    <h5>Carrera para la predicción</h5>
+                                    <select class="form-control" id="slc-carrera-prediccion">
+                                    <option value="" disabled selected>Elija la carrera</option>
+                                </select><br>
+
+                                    <center>
+                                        <p class="form-control" style="color:red; border-color: red; display: none;" id="mensaje-error-carrera">Debe seleccionar una carrera</p>
+                                    </center>
+                                    <center>
+                                        <p class="form-control" style="color:green; border-color: green; display: none;" id="mensaje-exito-carrera">Cambio de carrera exitoso</p>
+                                    </center>
+                                    <br>
+                                    <button id="btn-realizar-cambios-carrera" type="button" class="btn btn-success" style="display: none;" onclick="updateCarrera()">Realizar cambio de carrera</button>
+                                </div>
+                                <div class="col-md-6 col-lg-6" style="text-align: center; display: none;" id="div-num-periodos">
+                                    <h5>Número de periodos a tomar en cuenta para la predicción</h5>
+                                    <select class="form-control" id="slc-num-periodos-prediccion">
+                                    <option value="" disabled selected>Elija la cantidad de períodos</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option> 
+                                    <option value="6">6</option>
+                                    <option value="7">7</option>
+                                    <option value="8">8</option>
+                                    <option value="9">9</option>
+                                    <option value="10">10</option>                                   
+                                </select><br>
+
+                                    <center>
+                                        <p class="form-control" style="color:red; border-color: red; display: none;" id="mensaje-error-periodo">Debe seleccionar un periodo</p>
+                                    </center>
+                                    <center>
+                                        <p class="form-control" style="color:green; border-color: green; display: none;" id="mensaje-exito-periodo">Cambio de número de periodo exitoso</p>
+                                    </center>
+                                    <br>
+                                    <button id="btn-realizar-cambios-periodo" type="button" class="btn btn-success" style="display: none;" onclick="updatePeriodo()">Realizar cambio de número de periodos</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- FIN MODAL MANTENIMIENTO PARAMETROS-->
+
+
+
 
             <div class="row">
                 <div class="col-md-12">
@@ -178,6 +272,7 @@
     </div>
     <script src="js/jquery.min.js"></script>
     <script src="js/bootstrap3.min.js"></script>
+    <script src="js/controlador.mantenimiento.js"></script>
 
 </body>
 
